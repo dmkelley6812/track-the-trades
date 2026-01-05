@@ -161,7 +161,7 @@ export default function Trades() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteDialog(true)}
-                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-400"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete {selectedTradeIds.length}
