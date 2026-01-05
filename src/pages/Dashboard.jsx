@@ -133,7 +133,30 @@ export default function Dashboard() {
     setCustomStartDate(customStart);
     setCustomEndDate(customEnd);
     localStorage.setItem('dashboard_date_filter', filterType);
+    if (filterType === 'custom' && customStart && customEnd) {
+      localStorage.setItem('dashboard_custom_start', customStart.toISOString());
+      localStorage.setItem('dashboard_custom_end', customEnd.toISOString());
+    }
   };
+
+  const handleCustomDatesChange = (start, end) => {
+    setCustomStartDate(start);
+    setCustomEndDate(end);
+    if (start && end) {
+      localStorage.setItem('dashboard_custom_start', start.toISOString());
+      localStorage.setItem('dashboard_custom_end', end.toISOString());
+    }
+  };
+
+  // Load persisted custom dates on mount
+  useEffect(() => {
+    const savedStart = localStorage.getItem('dashboard_custom_start');
+    const savedEnd = localStorage.getItem('dashboard_custom_end');
+    if (savedStart && savedEnd) {
+      setCustomStartDate(new Date(savedStart));
+      setCustomEndDate(new Date(savedEnd));
+    }
+  }, []);
 
   if (userLoading) {
     return (
@@ -184,6 +207,9 @@ export default function Dashboard() {
           <DateFilter 
             value={dateFilter} 
             onChange={handleDateFilterChange}
+            customStart={customStartDate}
+            customEnd={customEndDate}
+            onCustomDatesChange={handleCustomDatesChange}
           />
         </div>
 

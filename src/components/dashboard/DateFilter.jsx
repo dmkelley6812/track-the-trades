@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, subDays, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear, subYears, isAfter, isBefore, startOfToday, endOfToday, startOfYesterday, endOfYesterday } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format, startOfDay, endOfDay, startOfWeek, subDays, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear, subYears, isAfter, isBefore, startOfToday, endOfToday, startOfYesterday, endOfYesterday } from 'date-fns';
 import { cn } from "@/lib/utils";
 
 const DATE_FILTER_OPTIONS = [
@@ -91,28 +91,40 @@ export function getDateRangeLabel(filterType, customStart, customEnd) {
   return option?.label || '';
 }
 
-export default function DateFilter({ value, onChange }) {
-  const [customStart, setCustomStart] = useState(null);
-  const [customEnd, setCustomEnd] = useState(null);
-  const [showCustom, setShowCustom] = useState(false);
+export default function DateFilter({ value, onChange, customStart, customEnd, onCustomDatesChange }) {
+  const [startPickerOpen, setStartPickerOpen] = useState(false);
+  const [endPickerOpen, setEndPickerOpen] = useState(false);
+
+  // Set defaults when switching to custom
+  useEffect(() => {
+    if (value === 'custom' && !customStart && !customEnd) {
+      const defaultStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday of current week
+      const defaultEnd = endOfToday();
+      onCustomDatesChange(defaultStart, defaultEnd);
+    }
+  }, [value, customStart, customEnd, onCustomDatesChange]);
 
   const handleFilterChange = (newValue) => {
-    if (newValue === 'custom') {
-      setShowCustom(true);
-    } else {
-      setShowCustom(false);
+    if (newValue !== 'custom') {
       onChange(newValue, null, null);
+    } else {
+      onChange(newValue, customStart, customEnd);
     }
   };
 
-  const handleCustomApply = () => {
-    if (customStart && customEnd) {
-      if (isAfter(customStart, customEnd)) {
-        alert('End date must be after start date');
-        return;
-      }
-      onChange('custom', customStart, customEnd);
-      setShowCustom(false);
+  const handleStartDateChange = (date) => {
+    if (date) {
+      // If new start date is after current end date, set end date to start date
+      const newEnd = customEnd && isAfter(date, customEnd) ? date : customEnd;
+      onCustomDatesChange(date, newEnd);
+      setStartPickerOpen(false);
+    }
+  };
+
+  const handleEndDateChange = (date) => {
+    if (date) {
+      onCustomDatesChange(customStart, date);
+      setEndPickerOpen(false);
     }
   };
 
@@ -121,9 +133,9 @@ export default function DateFilter({ value, onChange }) {
     : DATE_FILTER_OPTIONS.find(opt => opt.value === value)?.label || 'Select Range';
 
   return (
-    <div className="flex items-center gap-2">
-      <CalendarIcon className="w-4 h-4 text-slate-500" />
-      <Popover open={showCustom} onOpenChange={setShowCustom}>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <CalendarIcon className="w-4 h-4 text-slate-500" />
         <Select value={value} onValueChange={handleFilterChange}>
           <SelectTrigger className="w-[240px] bg-slate-900/50 border-slate-800 text-white">
             <SelectValue>
@@ -138,49 +150,60 @@ export default function DateFilter({ value, onChange }) {
             ))}
           </SelectContent>
         </Select>
-        
-        {value === 'custom' && (
-          <PopoverContent className="bg-slate-900 border-slate-800 p-4" align="start">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-slate-400 mb-2 block">Start Date</label>
-                <Calendar
-                  mode="single"
-                  selected={customStart}
-                  onSelect={setCustomStart}
-                  className="rounded-md border border-slate-800"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-slate-400 mb-2 block">End Date</label>
-                <Calendar
-                  mode="single"
-                  selected={customEnd}
-                  onSelect={setCustomEnd}
-                  disabled={(date) => customStart && isBefore(date, customStart)}
-                  className="rounded-md border border-slate-800"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCustom(false)}
-                  className="flex-1 border-slate-700 text-white hover:bg-slate-800"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCustomApply}
-                  disabled={!customStart || !customEnd}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  Apply
-                </Button>
-              </div>
+      </div>
+      
+      {value === 'custom' && (
+        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-slate-400 mb-2 block">Start Date</label>
+              <Popover open={startPickerOpen} onOpenChange={setStartPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-700 text-white hover:bg-slate-800"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customStart ? format(customStart, 'MMM d, yyyy') : 'Pick date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-800" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customStart}
+                    onSelect={handleStartDateChange}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-          </PopoverContent>
-        )}
-      </Popover>
+            
+            <div>
+              <label className="text-xs text-slate-400 mb-2 block">End Date</label>
+              <Popover open={endPickerOpen} onOpenChange={setEndPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-700 text-white hover:bg-slate-800"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customEnd ? format(customEnd, 'MMM d, yyyy') : 'Pick date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-800" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customEnd}
+                    onSelect={handleEndDateChange}
+                    disabled={(date) => customStart && isBefore(date, customStart)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
