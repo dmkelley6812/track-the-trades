@@ -37,6 +37,31 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Trades() {
+  const queryClient = useQueryClient();
+  
+  // Initialize date filter from URL params FIRST, then default to current_week
+  const initializeDateFilter = () => {
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get('start');
+    const endParam = params.get('end');
+    
+    if (startParam && endParam) {
+      return {
+        filter: 'custom',
+        start: new Date(startParam),
+        end: new Date(endParam)
+      };
+    }
+    
+    return {
+      filter: 'current_week',
+      start: null,
+      end: null
+    };
+  };
+
+  const initialFilter = initializeDateFilter();
+  
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [editingTrade, setEditingTrade] = useState(null);
   const [selectedTrade, setSelectedTrade] = useState(null);
@@ -45,25 +70,9 @@ export default function Trades() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedTradeIds, setSelectedTradeIds] = useState([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [dateFilter, setDateFilter] = useState('current_week');
-  const [customStartDate, setCustomStartDate] = useState(null);
-  const [customEndDate, setCustomEndDate] = useState(null);
-  const queryClient = useQueryClient();
-
-  // Read URL params for date filtering
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const startParam = params.get('start');
-    const endParam = params.get('end');
-    
-    if (startParam && endParam) {
-      const start = new Date(startParam);
-      const end = new Date(endParam);
-      setDateFilter('custom');
-      setCustomStartDate(start);
-      setCustomEndDate(end);
-    }
-  }, []);
+  const [dateFilter, setDateFilter] = useState(initialFilter.filter);
+  const [customStartDate, setCustomStartDate] = useState(initialFilter.start);
+  const [customEndDate, setCustomEndDate] = useState(initialFilter.end);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
