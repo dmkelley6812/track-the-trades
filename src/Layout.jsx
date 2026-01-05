@@ -59,8 +59,8 @@ export default function Layout({ children, currentPageName }) {
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-white">Track The Trades</h1>
-              <p className="text-xs text-slate-500">Trading Journal</p>
+              <h1 className="font-bold text-white">Expectancy</h1>
+              <p className="text-xs text-slate-500">Trade the Math, Not the Noise</p>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-white">TTT</span>
+            <span className="font-bold text-white">Expectancy</span>
           </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
