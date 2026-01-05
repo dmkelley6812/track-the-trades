@@ -1,9 +1,27 @@
-import { useMemo } from 'react';
-import { format, eachDayOfInterval, isSameDay } from 'date-fns';
+import { useMemo, useState, useEffect } from 'react';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addMonths, subMonths, isSameMonth, isAfter, isBefore, isWithinInterval, min, max } from 'date-fns';
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
-  // Aggregate daily stats
+  // Initialize displayed month to the most recent month in filter range
+  const [displayedMonth, setDisplayedMonth] = useState(() => {
+    if (!dateRange) return new Date();
+    const endDate = dateRange.end;
+    const today = new Date();
+    return isAfter(endDate, today) ? today : endDate;
+  });
+
+  // Update displayed month when date range changes
+  useEffect(() => {
+    if (!dateRange) return;
+    const endDate = dateRange.end;
+    const today = new Date();
+    setDisplayedMonth(isAfter(endDate, today) ? today : endDate);
+  }, [dateRange]);
+
+  // Aggregate daily stats (for entire filter range)
   const dailyStats = useMemo(() => {
     if (!dateRange) return {};
     
@@ -42,13 +60,33 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
     return stats;
   }, [trades, dateRange]);
 
-  // Get days in the filtered range
-  const daysInRange = useMemo(() => {
-    if (!dateRange) return [];
-    return eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
-  }, [dateRange]);
+  // Get days in the currently displayed month (calendar view)
+  const monthDays = useMemo(() => {
+    const monthStart = startOfMonth(displayedMonth);
+    const monthEnd = endOfMonth(displayedMonth);
+    const calendarStart = startOfWeek(monthStart);
+    const calendarEnd = endOfWeek(monthEnd);
+    
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  }, [displayedMonth]);
 
-  if (!dateRange || daysInRange.length === 0) {
+  // Check if prev/next month navigation is valid
+  const canGoPrev = useMemo(() => {
+    if (!dateRange) return false;
+    const prevMonth = subMonths(displayedMonth, 1);
+    const prevMonthEnd = endOfMonth(prevMonth);
+    return !isBefore(prevMonthEnd, dateRange.start);
+  }, [displayedMonth, dateRange]);
+
+  const canGoNext = useMemo(() => {
+    if (!dateRange) return false;
+    const nextMonth = addMonths(displayedMonth, 1);
+    const nextMonthStart = startOfMonth(nextMonth);
+    const today = new Date();
+    return !isAfter(nextMonthStart, min([dateRange.end, today]));
+  }, [displayedMonth, dateRange]);
+
+  if (!dateRange) {
     return null;
   }
 
@@ -58,9 +96,41 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
     }
   };
 
+  const isDateInRange = (date) => {
+    return isWithinInterval(date, { start: dateRange.start, end: dateRange.end });
+  };
+
   return (
     <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
-      <h2 className="text-lg font-semibold mb-4">Daily Performance</h2>
+      {/* Header with navigation */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Daily Performance</h2>
+        <div className="flex items-center gap-3">
+          <span className="text-slate-400 text-sm font-medium">
+            {format(displayedMonth, 'MMMM yyyy')}
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDisplayedMonth(subMonths(displayedMonth, 1))}
+              disabled={!canGoPrev}
+              className="h-8 w-8 text-slate-400 hover:text-white disabled:opacity-30"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDisplayedMonth(addMonths(displayedMonth, 1))}
+              disabled={!canGoNext}
+              className="h-8 w-8 text-slate-400 hover:text-white disabled:opacity-30"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
       
       <div className="grid grid-cols-7 gap-2">
         {/* Day headers */}
@@ -70,15 +140,13 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
           </div>
         ))}
         
-        {/* Fill empty slots for first week */}
-        {Array.from({ length: daysInRange[0]?.getDay() || 0 }).map((_, i) => (
-          <div key={`empty-${i}`} />
-        ))}
-        
         {/* Day blocks */}
-        {daysInRange.map(date => {
+        {monthDays.map(date => {
           const dateStr = format(date, 'yyyy-MM-dd');
           const stats = dailyStats[dateStr];
+          const inCurrentMonth = isSameMonth(date, displayedMonth);
+          const inFilterRange = isDateInRange(date);
+          const isClickable = inCurrentMonth && inFilterRange;
           const hasTrades = stats?.trades?.length > 0;
           const isProfit = hasTrades && stats.totalPnL > 0;
           const isLoss = hasTrades && stats.totalPnL < 0;
@@ -87,24 +155,30 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
           return (
             <button
               key={dateStr}
-              onClick={() => handleDayClick(date, stats)}
-              disabled={!hasTrades}
+              onClick={() => isClickable && handleDayClick(date, stats)}
+              disabled={!isClickable || !hasTrades}
               className={cn(
                 "aspect-square rounded-lg p-2 transition-all border text-left relative",
                 "flex flex-col justify-between min-h-[80px]",
-                hasTrades && "cursor-pointer hover:scale-105",
-                !hasTrades && "cursor-default",
-                isProfit && "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20",
-                isLoss && "bg-red-500/10 border-red-500/30 hover:bg-red-500/20",
-                isFlat && "bg-slate-800/30 border-slate-700",
-                !hasTrades && "bg-slate-900/30 border-slate-800/30"
+                !inCurrentMonth && "opacity-30",
+                !inFilterRange && "opacity-20 cursor-not-allowed",
+                isClickable && hasTrades && "cursor-pointer hover:scale-105",
+                (!isClickable || !hasTrades) && "cursor-default",
+                isClickable && isProfit && "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20",
+                isClickable && isLoss && "bg-red-500/10 border-red-500/30 hover:bg-red-500/20",
+                isClickable && isFlat && "bg-slate-800/30 border-slate-700",
+                isClickable && !hasTrades && "bg-slate-900/30 border-slate-800/30",
+                !isClickable && "bg-slate-900/10 border-slate-800/20"
               )}
             >
-              <div className="text-xs font-medium text-slate-400">
+              <div className={cn(
+                "text-xs font-medium",
+                inCurrentMonth && inFilterRange ? "text-slate-400" : "text-slate-600"
+              )}>
                 {format(date, 'd')}
               </div>
               
-              {hasTrades && (
+              {isClickable && hasTrades && (
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1 text-xs text-slate-400">
                     <span>{stats.trades.length}</span>
