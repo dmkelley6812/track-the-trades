@@ -3,6 +3,7 @@ import { format, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOf
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { createPageUrl } from '@/utils';
 
 export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
   // Initialize displayed month to the most recent month in filter range
@@ -91,8 +92,12 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
   }
 
   const handleDayClick = (date, stats) => {
-    if (onDayClick && stats?.trades?.length > 0) {
+    if (onDayClick) {
       onDayClick(date, stats);
+    } else if (stats?.trades?.length > 0) {
+      // Default behavior: navigate to Trades page filtered to this date
+      const dateStr = format(date, 'yyyy-MM-dd');
+      window.location.href = createPageUrl('Trades') + `?start=${dateStr}&end=${dateStr}`;
     }
   };
 

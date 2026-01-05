@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,17 @@ import {
   TrendingDown,
   Loader2,
   Calendar,
-  Trash2
+  Trash2,
+  DollarSign,
+  Target
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isAfter, isBefore } from 'date-fns';
 import { cn } from "@/lib/utils";
 import TradeForm from '@/components/trades/TradeForm';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
 import { Checkbox } from "@/components/ui/checkbox";
+import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
+import StatsCard from '@/components/dashboard/StatsCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +45,25 @@ export default function Trades() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedTradeIds, setSelectedTradeIds] = useState([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [dateFilter, setDateFilter] = useState('current_week');
+  const [customStartDate, setCustomStartDate] = useState(null);
+  const [customEndDate, setCustomEndDate] = useState(null);
   const queryClient = useQueryClient();
+
+  // Read URL params for date filtering
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get('start');
+    const endParam = params.get('end');
+    
+    if (startParam && endParam) {
+      const start = new Date(startParam);
+      const end = new Date(endParam);
+      setDateFilter('custom');
+      setCustomStartDate(start);
+      setCustomEndDate(end);
+    }
+  }, []);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -91,14 +113,32 @@ export default function Trades() {
     }
   });
 
+  // Filter trades by date range
+  const dateRange = getDateRange(dateFilter, customStartDate, customEndDate);
+  
   const filteredTrades = trades.filter(trade => {
     const matchesSearch = trade.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trade.setup_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trade.notes?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || trade.status === statusFilter;
     const matchesType = typeFilter === 'all' || trade.trade_type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    
+    // Date filtering (only for closed trades with exit_date)
+    let matchesDate = true;
+    if (dateRange && trade.status === 'closed' && trade.exit_date) {
+      const tradeDate = new Date(trade.exit_date);
+      matchesDate = !isBefore(tradeDate, dateRange.start) && !isAfter(tradeDate, dateRange.end);
+    }
+    
+    return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
+
+  // Calculate stats from filtered closed trades
+  const closedTrades = filteredTrades.filter(t => t.status === 'closed');
+  const totalPnL = closedTrades.reduce((sum, t) => sum + (t.profit_loss || 0), 0);
+  const wins = closedTrades.filter(t => t.profit_loss > 0).length;
+  const losses = closedTrades.filter(t => t.profit_loss < 0).length;
+  const winRate = closedTrades.length > 0 ? (wins / closedTrades.length) * 100 : 0;
 
   const handleTradeSubmit = (data) => {
     if (editingTrade) {
@@ -140,17 +180,28 @@ export default function Trades() {
     bulkDeleteMutation.mutate(selectedTradeIds);
   };
 
+  const handleDateFilterChange = (filterType, customStart, customEnd) => {
+    setDateFilter(filterType);
+    setCustomStartDate(customStart);
+    setCustomEndDate(customEnd);
+  };
+
+  const handleCustomDatesChange = (start, end) => {
+    setCustomStartDate(start);
+    setCustomEndDate(end);
+  };
+
   const isAllSelected = filteredTrades.length > 0 && selectedTradeIds.length === filteredTrades.length;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold">All Trades</h1>
             <p className="text-slate-400 mt-1">
-              {trades.length} total trades
+              {filteredTrades.length} {dateFilter !== 'all' ? 'filtered' : ''} trades
               {selectedTradeIds.length > 0 && (
                 <span className="ml-2 text-emerald-400">• {selectedTradeIds.length} selected</span>
               )}
@@ -179,6 +230,41 @@ export default function Trades() {
             </Button>
           </div>
         </div>
+
+        {/* Date Filter */}
+        <div className="mb-6">
+          <DateFilter 
+            value={dateFilter} 
+            onChange={handleDateFilterChange}
+            customStart={customStartDate}
+            customEnd={customEndDate}
+            onCustomDatesChange={handleCustomDatesChange}
+          />
+        </div>
+
+        {/* Stats Cards */}
+        {closedTrades.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <StatsCard
+              title="Total P&L"
+              value={`${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`}
+              icon={DollarSign}
+              className={totalPnL >= 0 ? "border-emerald-500/20" : "border-red-500/20"}
+            />
+            <StatsCard
+              title="Win Rate"
+              value={`${winRate.toFixed(1)}%`}
+              subtitle={`${wins}W / ${losses}L`}
+              icon={Target}
+            />
+            <StatsCard
+              title="Closed Trades"
+              value={closedTrades.length}
+              subtitle={`${filteredTrades.filter(t => t.status === 'open').length} open`}
+              icon={Calendar}
+            />
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
