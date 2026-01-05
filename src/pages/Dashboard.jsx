@@ -17,6 +17,7 @@ import StatsCard from '@/components/dashboard/StatsCard';
 import PnLChart from '@/components/dashboard/PnLChart';
 import RecentTrades from '@/components/dashboard/RecentTrades';
 import WinRateGauge from '@/components/dashboard/WinRateGauge';
+import PerformanceCalendar from '@/components/dashboard/PerformanceCalendar';
 import TradeForm from '@/components/trades/TradeForm';
 import CSVImporter from '@/components/trades/CSVImporter';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
@@ -266,6 +267,14 @@ export default function Dashboard() {
           ) : (
             <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
           )}
+        </div>
+
+        {/* Performance Calendar */}
+        <div className="mt-6">
+          <PerformanceCalendar 
+            trades={filteredTrades} 
+            dateRange={dateRange}
+          />
         </div>
       </div>
 
