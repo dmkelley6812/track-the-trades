@@ -5,10 +5,58 @@ import { Upload, FileText, AlertCircle, CheckCircle, X, Loader2 } from 'lucide-r
 import { cn } from "@/lib/utils";
 import { base44 } from '@/api/base44Client';
 
+// Default point values for common futures contracts
+const FUTURES_POINT_VALUES = {
+  'NQ': 20,      // E-mini Nasdaq
+  'MNQ': 2,      // Micro E-mini Nasdaq
+  'ES': 50,      // E-mini S&P 500
+  'MES': 5,      // Micro E-mini S&P 500
+  'YM': 5,       // E-mini Dow
+  'MYM': 0.5,    // Micro E-mini Dow
+  'RTY': 50,     // E-mini Russell 2000
+  'M2K': 5,      // Micro E-mini Russell 2000
+  'CL': 1000,    // Crude Oil
+  'MCL': 100,    // Micro Crude Oil
+  'GC': 100,     // Gold
+  'MGC': 10,     // Micro Gold
+  'SI': 5000,    // Silver
+  'SIL': 1000    // Micro Silver
+};
+
 const PLATFORM_CONFIGS = {
-  tradingview: {
+  tradingview_orders: {
     name: 'TradingView Orders',
     description: 'Export from: Paper Trading → More → Export Data → Orders',
+    type: 'orders',
+    columns: {
+      symbol: ['Symbol'],
+      side: ['Side'],
+      type: ['Type'],
+      quantity: ['Qty'],
+      fill_price: ['Fill Price'],
+      status: ['Status'],
+      commission: ['Commission'],
+      placing_time: ['Placing Time'],
+      closing_time: ['Closing Time']
+    }
+  },
+  tradingview_balance: {
+    name: 'TradingView Balance History',
+    description: 'Export from: Paper Trading → More → Export Data → Balance History',
+    type: 'balance',
+    columns: {
+      time: ['Time'],
+      balance_before: ['Balance Before'],
+      balance_after: ['Balance After'],
+      realized_pnl_value: ['Realized P&L (value)'],
+      realized_pnl_currency: ['Realized P&L (currency)'],
+      action: ['Action']
+    }
+  },
+  tradingview: {
+    name: 'TradingView Orders (Legacy)',
+    description: 'Export from: Paper Trading → More → Export Data → Orders',
+    type: 'orders',
     columns: {
       symbol: ['Symbol'],
       side: ['Side'],
@@ -50,12 +98,13 @@ const PLATFORM_CONFIGS = {
 };
 
 export default function CSVImporter({ onImportComplete, onCancel }) {
-  const [platform, setPlatform] = useState('tradingview');
+  const [platform, setPlatform] = useState('tradingview_orders');
   const [file, setFile] = useState(null);
   const [parsedData, setParsedData] = useState(null);
   const [errors, setErrors] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [instrumentMetadata, setInstrumentMetadata] = useState({});
   const fileInputRef = useRef(null);
 
   const parseCSV = (text) => {
@@ -153,7 +202,47 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     };
   };
 
-  const pairTradingViewOrders = (orders) => {
+  const getPointValue = (symbol) => {
+    // Check if we have metadata for this symbol
+    if (instrumentMetadata[symbol]?.point_value) {
+      return instrumentMetadata[symbol].point_value;
+    }
+    
+    // Extract base symbol (remove exchange prefix and contract month)
+    const baseSymbol = symbol.replace(/.*:/, '').replace(/[0-9!]/g, '');
+    
+    // Check fallback map
+    return FUTURES_POINT_VALUES[baseSymbol] || 1;
+  };
+
+  const extractInstrumentMetadata = (rows, headers, config) => {
+    const metadata = {};
+    
+    rows.forEach(row => {
+      const action = row[findColumn(headers, config.columns.action)] || '';
+      
+      // Parse action string for "Close ... position" entries
+      // Example: "Close CME_MINI:NQ1! position point value: 20.000000"
+      const closeMatch = action.match(/Close\s+([\w:!]+)\s+position.*point value:\s*([\d.]+)/i);
+      
+      if (closeMatch) {
+        const symbol = closeMatch[1];
+        const pointValue = parseFloat(closeMatch[2]);
+        
+        if (symbol && !isNaN(pointValue)) {
+          metadata[symbol] = {
+            symbol,
+            point_value: pointValue,
+            currency: 'USD'
+          };
+        }
+      }
+    });
+    
+    return metadata;
+  };
+
+  const pairTradingViewOrders = (orders, metadata = {}) => {
     // Filter only filled orders
     const filledOrders = orders.filter(o => o.status === 'Filled');
     
@@ -166,10 +255,14 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     
     const trades = [];
     
-    // For each symbol, pair buy/sell orders
+    // For each symbol, pair buy/sell orders using position state machine
     Object.entries(bySymbol).forEach(([symbol, orders]) => {
       // Sort by time
       const sorted = orders.sort((a, b) => new Date(a.time) - new Date(b.time));
+      
+      // Get point value for this symbol
+      const pointValue = getPointValue(symbol);
+      const isFutures = pointValue !== 1;
       
       let position = null;
       
@@ -184,7 +277,9 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
               quantity: order.quantity,
               entry_date: new Date(order.time).toISOString(),
               fees: order.commission,
-              source: 'csv_import'
+              source: 'csv_import',
+              point_value: isFutures ? pointValue : null,
+              instrument_type: isFutures ? 'futures' : 'stock'
             };
           }
         } else {
@@ -192,24 +287,82 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
           const isClosing = (position.trade_type === 'long' && order.side === 'Sell') ||
                             (position.trade_type === 'short' && order.side === 'Buy');
           
-          if (isClosing && order.quantity === position.quantity) {
-            // Position closed
-            position.exit_price = order.fill_price;
-            position.exit_date = new Date(order.time).toISOString();
-            position.fees += order.commission;
-            position.status = 'closed';
+          if (isClosing) {
+            const closeSize = Math.min(position.quantity, order.quantity);
             
-            // Calculate P&L
+            // Calculate P&L with point value
+            let realizedPoints;
             if (position.trade_type === 'long') {
-              position.profit_loss = (position.exit_price - position.entry_price) * position.quantity - position.fees;
+              realizedPoints = order.fill_price - position.entry_price;
             } else {
-              position.profit_loss = (position.entry_price - position.exit_price) * position.quantity - position.fees;
+              realizedPoints = position.entry_price - order.fill_price;
             }
             
-            position.profit_loss_percent = ((position.profit_loss + position.fees) / (position.entry_price * position.quantity)) * 100;
+            // Gross P&L = points * point_value * quantity
+            const grossPnL = realizedPoints * pointValue * closeSize;
+            const totalCommission = position.fees + order.commission;
+            const netPnL = grossPnL - totalCommission;
             
-            trades.push(position);
-            position = null;
+            if (closeSize === position.quantity) {
+              // Full close
+              position.exit_price = order.fill_price;
+              position.exit_date = new Date(order.time).toISOString();
+              position.fees = totalCommission;
+              position.status = 'closed';
+              position.profit_loss_gross = grossPnL;
+              position.profit_loss = netPnL;
+              position.profit_loss_percent = position.entry_price > 0 
+                ? (grossPnL / (position.entry_price * pointValue * position.quantity)) * 100 
+                : 0;
+              
+              trades.push(position);
+              position = null;
+              
+              // If partial fill, create new position with remaining
+              if (order.quantity > closeSize) {
+                position = {
+                  symbol: order.symbol,
+                  trade_type: order.side === 'Buy' ? 'long' : 'short',
+                  entry_price: order.fill_price,
+                  quantity: order.quantity - closeSize,
+                  entry_date: new Date(order.time).toISOString(),
+                  fees: 0, // Commission already allocated
+                  source: 'csv_import',
+                  point_value: isFutures ? pointValue : null,
+                  instrument_type: isFutures ? 'futures' : 'stock'
+                };
+              }
+            } else {
+              // Partial close - split the trade
+              const closedTrade = {
+                symbol: position.symbol,
+                trade_type: position.trade_type,
+                entry_price: position.entry_price,
+                exit_price: order.fill_price,
+                quantity: closeSize,
+                entry_date: position.entry_date,
+                exit_date: new Date(order.time).toISOString(),
+                fees: totalCommission,
+                status: 'closed',
+                profit_loss_gross: grossPnL,
+                profit_loss: netPnL,
+                profit_loss_percent: position.entry_price > 0 
+                  ? (grossPnL / (position.entry_price * pointValue * closeSize)) * 100 
+                  : 0,
+                source: 'csv_import',
+                point_value: isFutures ? pointValue : null,
+                instrument_type: isFutures ? 'futures' : 'stock'
+              };
+              
+              trades.push(closedTrade);
+              
+              // Keep remaining position open
+              position.quantity -= closeSize;
+              position.fees = 0; // Commission already allocated to closed trade
+            }
+          } else {
+            // Same side order - could be scaling in, but for now treat as separate
+            // In real implementation, could average the entry price
           }
         }
       });
@@ -237,8 +390,33 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     const config = PLATFORM_CONFIGS[platform];
     
     const parseErrors = [];
+    const config = PLATFORM_CONFIGS[platform];
     
-    if (platform === 'tradingview') {
+    // Check if this is a balance history CSV
+    if (config?.type === 'balance') {
+      // Extract instrument metadata from balance history
+      const metadata = extractInstrumentMetadata(rows, headers, config);
+      setInstrumentMetadata(metadata);
+      
+      // Save metadata to database
+      if (Object.keys(metadata).length > 0) {
+        // We'll save this after processing
+        setParsedData({ 
+          headers, 
+          trades: [], 
+          metadata,
+          totalRows: rows.length,
+          type: 'balance'
+        });
+      } else {
+        parseErrors.push({ row: 0, error: 'No instrument metadata found in balance history' });
+        setParsedData({ headers, trades: [], totalRows: rows.length });
+      }
+      setErrors(parseErrors);
+      return;
+    }
+    
+    if (platform === 'tradingview' || platform === 'tradingview_orders') {
       // Parse as orders first
       const orders = rows.map((row, idx) => {
         try {
@@ -249,15 +427,15 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         }
       }).filter(Boolean);
       
-      // Pair orders into trades
-      const trades = pairTradingViewOrders(orders);
+      // Pair orders into trades with metadata
+      const trades = pairTradingViewOrders(orders, instrumentMetadata);
       
       if (trades.length === 0) {
         parseErrors.push({ row: 0, error: 'No completed trades found. Make sure you have paired Buy/Sell orders.' });
       }
       
       setErrors(parseErrors);
-      setParsedData({ headers, trades, totalRows: rows.length });
+      setParsedData({ headers, trades, totalRows: rows.length, type: 'orders' });
     } else {
       // Legacy format parsing
       const trades = rows.map((row, idx) => {
@@ -282,17 +460,59 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
   };
 
   const handleImport = async () => {
-    if (!parsedData?.trades?.length) return;
+    if (!parsedData) return;
 
     setIsProcessing(true);
     
     try {
+      // If balance history, save metadata
+      if (parsedData.type === 'balance' && parsedData.metadata) {
+        const metadataEntries = Object.values(parsedData.metadata);
+        
+        for (const meta of metadataEntries) {
+          // Check if exists, update or create
+          const existing = await base44.entities.InstrumentMetadata.filter({ symbol: meta.symbol });
+          if (existing.length > 0) {
+            await base44.entities.InstrumentMetadata.update(existing[0].id, meta);
+          } else {
+            await base44.entities.InstrumentMetadata.create(meta);
+          }
+        }
+        
+        await base44.entities.ImportLog.create({
+          source: 'tradingview_balance',
+          status: 'success',
+          file_name: file.name,
+          trades_imported: 0,
+          trades_failed: 0
+        });
+
+        setImportResult({
+          success: true,
+          imported: 0,
+          metadata: metadataEntries.length,
+          message: `Imported metadata for ${metadataEntries.length} instrument(s)`
+        });
+
+        setTimeout(() => {
+          onImportComplete?.();
+        }, 2000);
+        
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Import trades
+      if (!parsedData.trades?.length) {
+        throw new Error('No trades to import');
+      }
+      
       const validTrades = parsedData.trades.filter(t => t.symbol && t.entry_price);
       
       await base44.entities.Trade.bulkCreate(validTrades);
       
       await base44.entities.ImportLog.create({
-        source: platform === 'tradingview' ? 'tradingview_csv' : 'tradestation_csv',
+        source: platform.includes('tradingview') ? 'tradingview_csv' : 'tradestation_csv',
         status: errors.length > 0 ? 'partial' : 'success',
         file_name: file.name,
         trades_imported: validTrades.length,
@@ -317,11 +537,11 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
       });
       
       await base44.entities.ImportLog.create({
-        source: platform === 'tradingview' ? 'tradingview_csv' : 'tradestation_csv',
+        source: platform.includes('tradingview') ? 'tradingview_csv' : 'tradestation_csv',
         status: 'failed',
         file_name: file.name,
         trades_imported: 0,
-        trades_failed: parsedData.trades.length,
+        trades_failed: parsedData.trades?.length || 0,
         error_details: err.message
       });
     }
@@ -427,8 +647,13 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
               <div>
                 <p className="font-medium text-emerald-400">Import Complete!</p>
                 <p className="text-sm text-emerald-300/70">
-                  {importResult.imported} trades imported
-                  {importResult.failed > 0 && `, ${importResult.failed} skipped`}
+                  {importResult.message || (
+                    <>
+                      {importResult.imported} trades imported
+                      {importResult.failed > 0 && `, ${importResult.failed} skipped`}
+                      {importResult.metadata > 0 && ` • ${importResult.metadata} instrument metadata saved`}
+                    </>
+                  )}
                 </p>
               </div>
             </>
@@ -454,7 +679,7 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         </Button>
         <Button
           onClick={handleImport}
-          disabled={!parsedData?.trades?.length || isProcessing || importResult?.success}
+          disabled={!parsedData || isProcessing || importResult?.success}
           className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           {isProcessing ? (
@@ -462,6 +687,8 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
               Importing...
             </>
+          ) : parsedData?.type === 'balance' ? (
+            `Import Metadata`
           ) : (
             `Import ${parsedData?.trades?.length || 0} Trades`
           )}

@@ -61,21 +61,47 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
           {/* P&L Display */}
           {trade.status === 'closed' && trade.profit_loss !== null && (
             <div className={cn(
-              "p-4 rounded-xl text-center",
+              "p-4 rounded-xl",
               isWin ? "bg-emerald-500/10 border border-emerald-500/30" : 
               isLoss ? "bg-red-500/10 border border-red-500/30" : 
               "bg-slate-800/50 border border-slate-700"
             )}>
-              <p className="text-sm text-slate-400 mb-1">Profit/Loss</p>
-              <p className={cn(
-                "text-3xl font-bold",
-                isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
-              )}>
-                {isWin ? '+' : ''}{trade.profit_loss?.toFixed(2)}
-                <span className="text-lg ml-2">
-                  ({trade.profit_loss_percent >= 0 ? '+' : ''}{trade.profit_loss_percent?.toFixed(2)}%)
-                </span>
-              </p>
+              <div className="text-center mb-3">
+                <p className="text-sm text-slate-400 mb-1">Net P&L</p>
+                <p className={cn(
+                  "text-3xl font-bold",
+                  isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
+                )}>
+                  {isWin ? '+' : ''}${trade.profit_loss?.toFixed(2)}
+                  {trade.profit_loss_percent !== undefined && trade.profit_loss_percent !== null && (
+                    <span className="text-lg ml-2">
+                      ({trade.profit_loss_percent >= 0 ? '+' : ''}{trade.profit_loss_percent?.toFixed(2)}%)
+                    </span>
+                  )}
+                </p>
+              </div>
+              {trade.profit_loss_gross !== undefined && trade.profit_loss_gross !== null && (
+                <div className="flex justify-between text-sm border-t border-slate-700/50 pt-3">
+                  <div>
+                    <p className="text-slate-500">Gross P&L</p>
+                    <p className={cn(
+                      "font-medium",
+                      trade.profit_loss_gross >= 0 ? "text-emerald-400" : "text-red-400"
+                    )}>
+                      {trade.profit_loss_gross >= 0 ? '+' : ''}${trade.profit_loss_gross?.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-slate-500">Commissions</p>
+                    <p className="font-medium text-slate-400">-${(trade.fees || 0).toFixed(2)}</p>
+                  </div>
+                </div>
+              )}
+              {trade.point_value && (
+                <p className="text-xs text-slate-500 text-center mt-2">
+                  Point Value: ${trade.point_value} • {trade.instrument_type || 'futures'}
+                </p>
+              )}
             </div>
           )}
 
