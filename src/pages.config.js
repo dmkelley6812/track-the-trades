@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Journal from './pages/Journal';
 import Settings from './pages/Settings';
 import Trades from './pages/Trades';
+import Insights from './pages/Insights';
 import __Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "Journal": Journal,
     "Settings": Settings,
     "Trades": Trades,
+    "Insights": Insights,
 }
 
 export const pagesConfig = {

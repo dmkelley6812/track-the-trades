@@ -13,7 +13,8 @@ import {
   Menu, 
   X,
   LogOut,
-  Shield
+  Shield,
+  Sparkles
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { name: 'Trades', page: 'Trades', icon: LineChart },
   { name: 'Journal', page: 'Journal', icon: BookOpen },
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
+  { name: 'Insights', page: 'Insights', icon: Sparkles },
   { name: 'Settings', page: 'Settings', icon: Settings },
 ];
 
