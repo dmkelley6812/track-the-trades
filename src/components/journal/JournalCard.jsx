@@ -11,13 +11,16 @@ const MOOD_ICONS = {
   frustrated: '😤'
 };
 
-export default function JournalCard({ journal, onEdit }) {
+export default function JournalCard({ journal, onEdit, onClick }) {
   const isProfit = journal.daily_pnl > 0;
   const isLoss = journal.daily_pnl < 0;
   const coverImage = journal.images?.[0];
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl overflow-hidden hover:border-slate-700/50 transition-all group">
+    <div 
+      onClick={onClick}
+      className="bg-slate-900/50 border border-slate-800/50 rounded-2xl overflow-hidden hover:border-slate-700/50 transition-all group cursor-pointer"
+    >
       {/* Cover Image */}
       {coverImage && (
         <div className="w-full h-48 overflow-hidden bg-slate-800">
@@ -48,7 +51,10 @@ export default function JournalCard({ journal, onEdit }) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onEdit(journal)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(journal);
+          }}
           className="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 hover:bg-slate-800"
         >
           <Edit2 className="w-4 h-4" />

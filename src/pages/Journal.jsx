@@ -10,12 +10,15 @@ import {
   Calendar
 } from 'lucide-react';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { toast } from 'sonner';
 import JournalForm from '@/components/journal/JournalForm';
 import JournalCard from '@/components/journal/JournalCard';
+import JournalDetailView from '@/components/journal/JournalDetailView';
 
 export default function Journal() {
   const [showJournalForm, setShowJournalForm] = useState(false);
   const [editingJournal, setEditingJournal] = useState(null);
+  const [selectedJournal, setSelectedJournal] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -52,6 +55,18 @@ export default function Journal() {
     }
   });
 
+  const deleteJournalMutation = useMutation({
+    mutationFn: (id) => base44.entities.Journal.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journals'] });
+      setSelectedJournal(null);
+      toast.success('Journal entry deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete journal entry');
+    }
+  });
+
   // Calculate daily stats for today
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayTrades = trades.filter(t => {
@@ -74,6 +89,14 @@ export default function Journal() {
   const handleEditJournal = (journal) => {
     setEditingJournal(journal);
     setShowJournalForm(true);
+  };
+
+  const handleDeleteJournal = (journal) => {
+    deleteJournalMutation.mutate(journal.id);
+  };
+
+  const handleViewJournal = (journal) => {
+    setSelectedJournal(journal);
   };
 
   // Group journals by month
@@ -164,6 +187,7 @@ export default function Journal() {
                       key={journal.id}
                       journal={journal}
                       onEdit={handleEditJournal}
+                      onClick={() => handleViewJournal(journal)}
                     />
                   ))}
                 </div>
@@ -188,6 +212,15 @@ export default function Journal() {
           />
         </SheetContent>
       </Sheet>
+
+      {/* Journal Detail View */}
+      <JournalDetailView
+        journal={selectedJournal}
+        open={!!selectedJournal}
+        onClose={() => setSelectedJournal(null)}
+        onEdit={handleEditJournal}
+        onDelete={handleDeleteJournal}
+      />
     </div>
   );
 }
