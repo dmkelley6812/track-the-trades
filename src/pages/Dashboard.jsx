@@ -223,18 +223,21 @@ export default function Dashboard() {
             value={`${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`}
             icon={DollarSign}
             className={totalPnL >= 0 ? "border-emerald-500/20" : "border-red-500/20"}
+            info="Total Profit & Loss across all closed trades in the selected time period. This is your net gain or loss after commissions and fees."
           />
           <StatsCard
             title="Win Rate"
             value={`${winRate.toFixed(1)}%`}
             subtitle={`${wins}W / ${losses}L`}
             icon={Target}
+            info="Percentage of winning trades out of total trades. Calculated as: (Winning Trades ÷ Total Trades) × 100. A higher win rate means you're right more often."
           />
           <StatsCard
             title="Profit Factor"
             value={profitFactor.toFixed(2)}
             icon={TrendingUp}
             className={profitFactor >= 1.5 ? "border-emerald-500/20" : profitFactor >= 1 ? "border-slate-700" : "border-red-500/20"}
+            info="Ratio of gross profit to gross loss. Calculated as: Total Winning $ ÷ Total Losing $. A value above 2.0 is excellent, above 1.5 is good, and below 1.0 means you're losing money."
           />
           <StatsCard
             title="Expectancy"
@@ -242,12 +245,14 @@ export default function Dashboard() {
             subtitle="Per trade"
             icon={Calculator}
             className={expectancy >= 0 ? "border-emerald-500/20" : "border-red-500/20"}
+            info="Average amount you can expect to win or lose per trade. Calculated as: (Win Rate × Avg Win) - (Loss Rate × Avg Loss). Positive expectancy means your system is profitable long-term."
           />
           <StatsCard
             title="Total Trades"
             value={filteredTrades.length}
             subtitle={`${filteredTrades.filter(t => t.status === 'open').length} open`}
             icon={Activity}
+            info="Total number of trades in the selected time period, including both open and closed positions."
           />
         </div>
 
