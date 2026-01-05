@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -12,10 +14,18 @@ import {
   Edit2, 
   Trash2,
   FileText,
-  Clock
+  Clock,
+  Target
 } from 'lucide-react';
 
 export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelete }) {
+  const { data: strategy } = useQuery({
+    queryKey: ['strategy', trade?.strategy_id],
+    queryFn: () => base44.entities.Strategy.filter({ id: trade.strategy_id }),
+    enabled: !!trade?.strategy_id,
+    select: (data) => data[0]
+  });
+
   if (!trade) return null;
 
   const isWin = trade.profit_loss > 0;
@@ -148,6 +158,32 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
               </div>
             )}
           </div>
+
+          {/* Strategy & Keywords */}
+          {(strategy || trade.keywords?.length > 0) && (
+            <div className="space-y-2">
+              {strategy && (
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-emerald-500" />
+                  <span className="text-sm text-slate-400">Strategy:</span>
+                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
+                    {strategy.name}
+                  </Badge>
+                </div>
+              )}
+              {trade.keywords?.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Tag className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm text-slate-400">Keywords:</span>
+                  {trade.keywords.map((keyword, idx) => (
+                    <Badge key={idx} className="bg-emerald-500/10 text-emerald-300 border-emerald-500/20 text-xs">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Setup & Tags */}
           {(trade.setup_type || trade.tags?.length > 0) && (

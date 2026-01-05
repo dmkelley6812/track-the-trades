@@ -8,6 +8,8 @@ import { X, Save, Loader2, ImagePlus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import StrategySelect from '@/components/common/StrategySelect';
+import KeywordInput from '@/components/common/KeywordInput';
 
 const MOOD_OPTIONS = [
   { value: 'confident', label: '😎 Confident', color: 'text-emerald-400' },
@@ -28,7 +30,9 @@ export default function JournalForm({ journal, onSubmit, onCancel, isLoading, da
     goals_for_tomorrow: journal?.goals_for_tomorrow || '',
     daily_pnl: journal?.daily_pnl ?? dailyStats?.pnl ?? '',
     trades_count: journal?.trades_count ?? dailyStats?.count ?? '',
-    images: journal?.images || []
+    images: journal?.images || [],
+    strategy_id: journal?.strategy_id || '',
+    keywords: journal?.keywords || []
   });
 
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -202,6 +206,27 @@ export default function JournalForm({ journal, onSubmit, onCancel, isLoading, da
               onChange={(e) => handleChange('trades_count', e.target.value)}
               placeholder="0"
               className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-slate-300">Strategy</Label>
+          <div className="mt-1.5">
+            <StrategySelect
+              value={formData.strategy_id}
+              onChange={(value) => handleChange('strategy_id', value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-slate-300">Keywords</Label>
+          <div className="mt-1.5">
+            <KeywordInput
+              keywords={formData.keywords}
+              onChange={(keywords) => handleChange('keywords', keywords)}
+              placeholder="e.g., trend day, choppy, strong open"
             />
           </div>
         </div>

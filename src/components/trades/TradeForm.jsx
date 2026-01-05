@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { X, Save, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import StrategySelect from '@/components/common/StrategySelect';
+import KeywordInput from '@/components/common/KeywordInput';
 
 export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
   const [formData, setFormData] = useState({
@@ -21,7 +23,9 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
     fees: trade?.fees || 0,
     notes: trade?.notes || '',
     setup_type: trade?.setup_type || '',
-    tags: trade?.tags?.join(', ') || ''
+    tags: trade?.tags?.join(', ') || '',
+    strategy_id: trade?.strategy_id || '',
+    keywords: trade?.keywords || []
   });
 
   const [isOpen, setIsOpen] = useState(formData.status === 'open');
@@ -219,6 +223,27 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
             )}
           </>
         )}
+
+        <div className="col-span-2">
+          <Label className="text-slate-300">Strategy</Label>
+          <div className="mt-1.5">
+            <StrategySelect
+              value={formData.strategy_id}
+              onChange={(value) => handleChange('strategy_id', value)}
+            />
+          </div>
+        </div>
+
+        <div className="col-span-2">
+          <Label className="text-slate-300">Keywords</Label>
+          <div className="mt-1.5">
+            <KeywordInput
+              keywords={formData.keywords}
+              onChange={(keywords) => handleChange('keywords', keywords)}
+              placeholder="e.g., NY open, high volatility, news day"
+            />
+          </div>
+        </div>
 
         <div className="col-span-2">
           <Label className="text-slate-300">Setup Type</Label>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { 
   X, 
   MoreVertical, 
@@ -27,7 +30,9 @@ import {
   Calendar,
   TrendingUp,
   TrendingDown,
-  BarChart2
+  BarChart2,
+  Target,
+  Tag
 } from 'lucide-react';
 
 const MOOD_ICONS = {
@@ -41,6 +46,13 @@ const MOOD_ICONS = {
 export default function JournalDetailView({ journal, open, onClose, onEdit, onDelete }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+
+  const { data: strategy } = useQuery({
+    queryKey: ['strategy', journal?.strategy_id],
+    queryFn: () => base44.entities.Strategy.filter({ id: journal.strategy_id }),
+    enabled: !!journal?.strategy_id,
+    select: (data) => data[0]
+  });
 
   if (!journal) return null;
 
@@ -104,6 +116,32 @@ export default function JournalDetailView({ journal, open, onClose, onEdit, onDe
           </div>
 
           <div className="space-y-6 py-4">
+            {/* Strategy & Keywords */}
+            {(strategy || journal.keywords?.length > 0) && (
+              <div className="space-y-2">
+                {strategy && (
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm text-slate-400">Strategy:</span>
+                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                      {strategy.name}
+                    </Badge>
+                  </div>
+                )}
+                {journal.keywords?.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Tag className="w-4 h-4 text-slate-500" />
+                    <span className="text-sm text-slate-400">Keywords:</span>
+                    {journal.keywords.map((keyword, idx) => (
+                      <Badge key={idx} className="bg-emerald-500/10 text-emerald-300 border-emerald-500/20">
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Stats */}
             {(journal.daily_pnl !== null || journal.trades_count !== null) && (
               <div className="flex gap-3">
