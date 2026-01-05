@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
-import { Calendar, TrendingUp, TrendingDown, BarChart2, Edit2 } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, BarChart2, Edit2, Image as ImageIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 const MOOD_ICONS = {
@@ -14,9 +14,26 @@ const MOOD_ICONS = {
 export default function JournalCard({ journal, onEdit }) {
   const isProfit = journal.daily_pnl > 0;
   const isLoss = journal.daily_pnl < 0;
+  const coverImage = journal.images?.[0];
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-5 hover:border-slate-700/50 transition-all group">
+    <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl overflow-hidden hover:border-slate-700/50 transition-all group">
+      {/* Cover Image */}
+      {coverImage ? (
+        <div className="w-full h-48 overflow-hidden bg-slate-800">
+          <img
+            src={coverImage.url}
+            alt="Journal cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      ) : (
+        <div className="w-full h-48 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+          <ImageIcon className="w-12 h-12 text-slate-700" />
+        </div>
+      )}
+
+      <div className="p-5">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="text-2xl">{MOOD_ICONS[journal.mood] || '📝'}</div>
@@ -36,7 +53,7 @@ export default function JournalCard({ journal, onEdit }) {
           variant="ghost"
           size="icon"
           onClick={() => onEdit(journal)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          className="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 hover:bg-slate-800"
         >
           <Edit2 className="w-4 h-4" />
         </Button>
@@ -83,6 +100,14 @@ export default function JournalCard({ journal, onEdit }) {
           <p className="text-sm text-slate-400 line-clamp-2">{journal.lessons_learned}</p>
         </div>
       )}
+
+      {journal.images?.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-800/50 flex items-center gap-2 text-slate-500">
+          <ImageIcon className="w-4 h-4" />
+          <span className="text-sm">{journal.images.length} {journal.images.length === 1 ? 'image' : 'images'}</span>
+        </div>
+      )}
+      </div>
     </div>
   );
 }

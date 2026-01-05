@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Save, Loader2 } from 'lucide-react';
+import { X, Save, Loader2, ImagePlus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 const MOOD_OPTIONS = [
   { value: 'confident', label: '😎 Confident', color: 'text-emerald-400' },
@@ -25,11 +27,61 @@ export default function JournalForm({ journal, onSubmit, onCancel, isLoading, da
     lessons_learned: journal?.lessons_learned || '',
     goals_for_tomorrow: journal?.goals_for_tomorrow || '',
     daily_pnl: journal?.daily_pnl ?? dailyStats?.pnl ?? '',
-    trades_count: journal?.trades_count ?? dailyStats?.count ?? ''
+    trades_count: journal?.trades_count ?? dailyStats?.count ?? '',
+    images: journal?.images || []
   });
+
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    const maxSize = 10 * 1024 * 1024;
+
+    const invalidFiles = files.filter(f => !validTypes.includes(f.type) || f.size > maxSize);
+    if (invalidFiles.length > 0) {
+      toast.error('Some files were invalid. Use PNG, JPG, or WEBP under 10MB.');
+      return;
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        return {
+          url: file_url,
+          filename: file.name,
+          uploadedAt: new Date().toISOString()
+        };
+      });
+
+      const uploadedImages = await Promise.all(uploadPromises);
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...uploadedImages]
+      }));
+      toast.success(`${uploadedImages.length} image(s) uploaded`);
+    } catch (err) {
+      toast.error('Failed to upload images');
+    } finally {
+      setUploadingImages(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -152,6 +204,64 @@ export default function JournalForm({ journal, onSubmit, onCancel, isLoading, da
               className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
             />
           </div>
+        </div>
+
+        {/* Image Upload Section */}
+        <div className="pt-4 border-t border-slate-800">
+          <Label className="text-slate-300 mb-3 block">Images / Screenshots</Label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            multiple
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingImages}
+            className="w-full border-slate-700 text-slate-300 hover:bg-slate-800"
+          >
+            {uploadingImages ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <ImagePlus className="w-4 h-4 mr-2" />
+                Add Images
+              </>
+            )}
+          </Button>
+
+          {formData.images.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              {formData.images.map((image, idx) => (
+                <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden bg-slate-800">
+                  <img
+                    src={image.url}
+                    alt={image.filename}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-1 right-1 p-1.5 bg-red-500/90 hover:bg-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3 text-white" />
+                  </button>
+                  {idx === 0 && (
+                    <div className="absolute bottom-1 left-1 px-2 py-0.5 bg-emerald-500/90 text-white text-xs rounded">
+                      Cover
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
