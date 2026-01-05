@@ -13,12 +13,24 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import TradeForm from '@/components/trades/TradeForm';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Trades() {
   const [showTradeForm, setShowTradeForm] = useState(false);
@@ -27,6 +39,8 @@ export default function Trades() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [selectedTradeIds, setSelectedTradeIds] = useState([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -66,6 +80,17 @@ export default function Trades() {
     }
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids) => {
+      await Promise.all(ids.map(id => base44.entities.Trade.delete(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      setSelectedTradeIds([]);
+      setShowDeleteDialog(false);
+    }
+  });
+
   const filteredTrades = trades.filter(trade => {
     const matchesSearch = trade.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trade.setup_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,6 +120,28 @@ export default function Trades() {
     }
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedTradeIds(filteredTrades.map(t => t.id));
+    } else {
+      setSelectedTradeIds([]);
+    }
+  };
+
+  const handleSelectTrade = (tradeId, checked) => {
+    if (checked) {
+      setSelectedTradeIds(prev => [...prev, tradeId]);
+    } else {
+      setSelectedTradeIds(prev => prev.filter(id => id !== tradeId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    bulkDeleteMutation.mutate(selectedTradeIds);
+  };
+
+  const isAllSelected = filteredTrades.length > 0 && selectedTradeIds.length === filteredTrades.length;
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -102,18 +149,35 @@ export default function Trades() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold">All Trades</h1>
-            <p className="text-slate-400 mt-1">{trades.length} total trades</p>
+            <p className="text-slate-400 mt-1">
+              {trades.length} total trades
+              {selectedTradeIds.length > 0 && (
+                <span className="ml-2 text-emerald-400">• {selectedTradeIds.length} selected</span>
+              )}
+            </p>
           </div>
-          <Button
-            onClick={() => {
-              setEditingTrade(null);
-              setShowTradeForm(true);
-            }}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Trade
-          </Button>
+          <div className="flex gap-3">
+            {selectedTradeIds.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(true)}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete {selectedTradeIds.length}
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                setEditingTrade(null);
+                setShowTradeForm(true);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Trade
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -174,6 +238,13 @@ export default function Trades() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-800">
+                    <th className="px-4 py-4 w-12">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        className="border-slate-600"
+                      />
+                    </th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Symbol</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Type</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Entry</th>
@@ -188,14 +259,24 @@ export default function Trades() {
                   {filteredTrades.map((trade) => {
                     const isWin = trade.profit_loss > 0;
                     const isLoss = trade.profit_loss < 0;
+                    const isSelected = selectedTradeIds.includes(trade.id);
                     
                     return (
                       <tr
                         key={trade.id}
-                        onClick={() => setSelectedTrade(trade)}
-                        className="border-b border-slate-800/50 hover:bg-slate-800/30 cursor-pointer transition-colors"
+                        className={cn(
+                          "border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors",
+                          isSelected && "bg-emerald-500/5"
+                        )}
                       >
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleSelectTrade(trade.id, checked)}
+                            className="border-slate-600"
+                          />
+                        </td>
+                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
                           <div className="flex items-center gap-2">
                             <div className={cn(
                               "w-8 h-8 rounded-lg flex items-center justify-center",
@@ -210,7 +291,7 @@ export default function Trades() {
                             <span className="font-semibold">{trade.symbol}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
                           <Badge variant="outline" className={cn(
                             "capitalize text-xs",
                             trade.trade_type === 'long' ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"
@@ -218,12 +299,12 @@ export default function Trades() {
                             {trade.trade_type}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-slate-300">${trade.entry_price}</td>
-                        <td className="px-6 py-4 text-slate-300">
+                        <td className="px-6 py-4 text-slate-300 cursor-pointer" onClick={() => setSelectedTrade(trade)}>${trade.entry_price}</td>
+                        <td className="px-6 py-4 text-slate-300 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
                           {trade.exit_price ? `$${trade.exit_price}` : '-'}
                         </td>
-                        <td className="px-6 py-4 text-slate-300">{trade.quantity}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-slate-300 cursor-pointer" onClick={() => setSelectedTrade(trade)}>{trade.quantity}</td>
+                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
                           {trade.status === 'closed' && trade.profit_loss !== null ? (
                             <span className={cn(
                               "font-semibold",
@@ -235,13 +316,13 @@ export default function Trades() {
                             <span className="text-slate-500">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-slate-400 text-sm">
+                        <td className="px-6 py-4 text-slate-400 text-sm cursor-pointer" onClick={() => setSelectedTrade(trade)}>
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {format(new Date(trade.entry_date), 'MMM d, yyyy')}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
                           <Badge className={cn(
                             "text-xs",
                             trade.status === 'open' 
@@ -284,6 +365,37 @@ export default function Trades() {
         onEdit={handleEditTrade}
         onDelete={handleDeleteTrade}
       />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete {selectedTradeIds.length} {selectedTradeIds.length === 1 ? 'trade' : 'trades'}?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This action cannot be undone. This will permanently delete {selectedTradeIds.length === 1 ? 'this trade' : 'these trades'} from your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {bulkDeleteMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
