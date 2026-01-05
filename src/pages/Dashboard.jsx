@@ -10,7 +10,8 @@ import {
   DollarSign, 
   Target, 
   Activity,
-  Loader2
+  Loader2,
+  Calculator
 } from 'lucide-react';
 import { isAfter, isBefore } from 'date-fns';
 import StatsCard from '@/components/dashboard/StatsCard';
@@ -97,13 +98,14 @@ export default function Dashboard() {
   const wins = closedTrades.filter(t => t.profit_loss > 0).length;
   const losses = closedTrades.filter(t => t.profit_loss < 0).length;
   const winRate = closedTrades.length > 0 ? (wins / closedTrades.length) * 100 : 0;
-  const avgWin = wins > 0 
-    ? closedTrades.filter(t => t.profit_loss > 0).reduce((sum, t) => sum + t.profit_loss, 0) / wins 
+  const totalWins = closedTrades.filter(t => t.profit_loss > 0).reduce((sum, t) => sum + t.profit_loss, 0);
+  const totalLosses = Math.abs(closedTrades.filter(t => t.profit_loss < 0).reduce((sum, t) => sum + t.profit_loss, 0));
+  const avgWin = wins > 0 ? totalWins / wins : 0;
+  const avgLoss = losses > 0 ? totalLosses / losses : 0;
+  const profitFactor = totalLosses > 0 ? totalWins / totalLosses : (totalWins > 0 ? totalWins : 0);
+  const expectancy = closedTrades.length > 0 
+    ? (winRate / 100 * avgWin) - ((100 - winRate) / 100 * avgLoss)
     : 0;
-  const avgLoss = losses > 0 
-    ? Math.abs(closedTrades.filter(t => t.profit_loss < 0).reduce((sum, t) => sum + t.profit_loss, 0)) / losses 
-    : 0;
-  const profitFactor = avgLoss > 0 ? (avgWin * wins) / (avgLoss * losses) : 0;
 
   const handleTradeSubmit = (data) => {
     if (editingTrade) {
@@ -215,7 +217,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <StatsCard
             title="Total P&L"
             value={`${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`}
@@ -232,6 +234,14 @@ export default function Dashboard() {
             title="Profit Factor"
             value={profitFactor.toFixed(2)}
             icon={TrendingUp}
+            className={profitFactor >= 1.5 ? "border-emerald-500/20" : profitFactor >= 1 ? "border-slate-700" : "border-red-500/20"}
+          />
+          <StatsCard
+            title="Expectancy"
+            value={`${expectancy >= 0 ? '+' : ''}$${expectancy.toFixed(2)}`}
+            subtitle="Per trade"
+            icon={Calculator}
+            className={expectancy >= 0 ? "border-emerald-500/20" : "border-red-500/20"}
           />
           <StatsCard
             title="Total Trades"
