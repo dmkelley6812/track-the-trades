@@ -3,9 +3,11 @@ import { format, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOf
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
+  const navigate = useNavigate();
   // Initialize displayed month to the most recent month in filter range
   const [displayedMonth, setDisplayedMonth] = useState(() => {
     if (!dateRange) return new Date();
@@ -97,7 +99,7 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
     } else if (stats?.trades?.length > 0) {
       // Default behavior: navigate to Trades page filtered to this date
       const dateStr = format(date, 'yyyy-MM-dd');
-      window.location.href = createPageUrl('Trades') + `?start=${dateStr}&end=${dateStr}`;
+      navigate(`${createPageUrl('Trades')}?start=${dateStr}&end=${dateStr}`);
     }
   };
 
