@@ -18,7 +18,7 @@ import {
   DollarSign,
   Target
 } from 'lucide-react';
-import { format, isAfter, isBefore } from 'date-fns';
+import { format, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { cn } from "@/lib/utils";
 import TradeForm from '@/components/trades/TradeForm';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
@@ -46,10 +46,14 @@ export default function Trades() {
     const endParam = params.get('end');
     
     if (startParam && endParam) {
+      // Parse dates and ensure they're set to start/end of day
+      const start = startOfDay(new Date(startParam + 'T00:00:00'));
+      const end = endOfDay(new Date(endParam + 'T23:59:59'));
+      
       return {
         filter: 'custom',
-        start: new Date(startParam),
-        end: new Date(endParam)
+        start: start,
+        end: end
       };
     }
     
