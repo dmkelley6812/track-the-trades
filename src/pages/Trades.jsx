@@ -25,6 +25,7 @@ import TradeDetailModal from '@/components/common/TradeDetailModal';
 import { Checkbox } from "@/components/ui/checkbox";
 import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
 import StatsCard from '@/components/dashboard/StatsCard';
+import ColumnCustomizer from '@/components/trades/ColumnCustomizer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+const DEFAULT_COLUMNS = [
+  { id: 'symbol', label: 'Symbol', visible: true },
+  { id: 'type', label: 'Type', visible: true },
+  { id: 'entry', label: 'Entry', visible: true },
+  { id: 'exit', label: 'Exit', visible: true },
+  { id: 'qty', label: 'Qty', visible: true },
+  { id: 'pnl', label: 'P&L', visible: true },
+  { id: 'date', label: 'Date', visible: true },
+  { id: 'status', label: 'Status', visible: true },
+];
 
 export default function Trades() {
   const queryClient = useQueryClient();
@@ -82,6 +94,28 @@ export default function Trades() {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
   });
+
+  const [columns, setColumns] = useState(() => {
+    return user?.trades_table_columns || DEFAULT_COLUMNS;
+  });
+
+  useEffect(() => {
+    if (user?.trades_table_columns) {
+      setColumns(user.trades_table_columns);
+    }
+  }, [user]);
+
+  const updateColumnsMutation = useMutation({
+    mutationFn: (columns) => base44.auth.updateMe({ trades_table_columns: columns }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    }
+  });
+
+  const handleColumnsChange = (newColumns) => {
+    setColumns(newColumns);
+    updateColumnsMutation.mutate(newColumns);
+  };
 
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['trades'],
@@ -311,6 +345,7 @@ export default function Trades() {
               <SelectItem value="short" className="text-white">Short</SelectItem>
             </SelectContent>
           </Select>
+          <ColumnCustomizer columns={columns} onChange={handleColumnsChange} />
         </div>
 
         {/* Trades Table */}
@@ -344,14 +379,11 @@ export default function Trades() {
                         className="border-slate-600"
                       />
                     </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Symbol</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Type</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Entry</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Exit</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Qty</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">P&L</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Date</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-400">Status</th>
+                    {columns.filter(col => col.visible).map(col => (
+                      <th key={col.id} className="text-left px-6 py-4 text-sm font-medium text-slate-400">
+                        {col.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -359,6 +391,73 @@ export default function Trades() {
                     const isWin = trade.profit_loss > 0;
                     const isLoss = trade.profit_loss < 0;
                     const isSelected = selectedTradeIds.includes(trade.id);
+                    
+                    const renderCell = (columnId) => {
+                      switch (columnId) {
+                        case 'symbol':
+                          return (
+                            <div className="flex items-center gap-2">
+                              <div className={cn(
+                                "w-8 h-8 rounded-lg flex items-center justify-center",
+                                trade.trade_type === 'long' ? "bg-emerald-500/20" : "bg-red-500/20"
+                              )}>
+                                {trade.trade_type === 'long' ? (
+                                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                                ) : (
+                                  <TrendingDown className="w-4 h-4 text-red-400" />
+                                )}
+                              </div>
+                              <span className="font-semibold">{trade.symbol}</span>
+                            </div>
+                          );
+                        case 'type':
+                          return (
+                            <Badge variant="outline" className={cn(
+                              "capitalize text-xs",
+                              trade.trade_type === 'long' ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"
+                            )}>
+                              {trade.trade_type}
+                            </Badge>
+                          );
+                        case 'entry':
+                          return <span className="text-slate-300">${trade.entry_price}</span>;
+                        case 'exit':
+                          return <span className="text-slate-300">{trade.exit_price ? `$${trade.exit_price}` : '-'}</span>;
+                        case 'qty':
+                          return <span className="text-slate-300">{trade.quantity}</span>;
+                        case 'pnl':
+                          return trade.status === 'closed' && trade.profit_loss !== null ? (
+                            <span className={cn(
+                              "font-semibold",
+                              isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
+                            )}>
+                              {isWin ? '+' : ''}${trade.profit_loss?.toFixed(2)}
+                            </span>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'date':
+                          return (
+                            <div className="flex items-center gap-1 text-slate-400 text-sm">
+                              <Calendar className="w-3 h-3" />
+                              {format(new Date(trade.entry_date), 'MMM d, yyyy')}
+                            </div>
+                          );
+                        case 'status':
+                          return (
+                            <Badge className={cn(
+                              "text-xs",
+                              trade.status === 'open' 
+                                ? "bg-amber-500/20 text-amber-400 border-amber-500/50" 
+                                : "bg-slate-700/50 text-slate-400 border-slate-600"
+                            )}>
+                              {trade.status}
+                            </Badge>
+                          );
+                        default:
+                          return null;
+                      }
+                    };
                     
                     return (
                       <tr
@@ -375,62 +474,15 @@ export default function Trades() {
                             className="border-slate-600"
                           />
                         </td>
-                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
-                          <div className="flex items-center gap-2">
-                            <div className={cn(
-                              "w-8 h-8 rounded-lg flex items-center justify-center",
-                              trade.trade_type === 'long' ? "bg-emerald-500/20" : "bg-red-500/20"
-                            )}>
-                              {trade.trade_type === 'long' ? (
-                                <TrendingUp className="w-4 h-4 text-emerald-400" />
-                              ) : (
-                                <TrendingDown className="w-4 h-4 text-red-400" />
-                              )}
-                            </div>
-                            <span className="font-semibold">{trade.symbol}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
-                          <Badge variant="outline" className={cn(
-                            "capitalize text-xs",
-                            trade.trade_type === 'long' ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"
-                          )}>
-                            {trade.trade_type}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-slate-300 cursor-pointer" onClick={() => setSelectedTrade(trade)}>${trade.entry_price}</td>
-                        <td className="px-6 py-4 text-slate-300 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
-                          {trade.exit_price ? `$${trade.exit_price}` : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-slate-300 cursor-pointer" onClick={() => setSelectedTrade(trade)}>{trade.quantity}</td>
-                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
-                          {trade.status === 'closed' && trade.profit_loss !== null ? (
-                            <span className={cn(
-                              "font-semibold",
-                              isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
-                            )}>
-                              {isWin ? '+' : ''}${trade.profit_loss?.toFixed(2)}
-                            </span>
-                          ) : (
-                            <span className="text-slate-500">-</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-slate-400 text-sm cursor-pointer" onClick={() => setSelectedTrade(trade)}>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {format(new Date(trade.entry_date), 'MMM d, yyyy')}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedTrade(trade)}>
-                          <Badge className={cn(
-                            "text-xs",
-                            trade.status === 'open' 
-                              ? "bg-amber-500/20 text-amber-400 border-amber-500/50" 
-                              : "bg-slate-700/50 text-slate-400 border-slate-600"
-                          )}>
-                            {trade.status}
-                          </Badge>
-                        </td>
+                        {columns.filter(col => col.visible).map(col => (
+                          <td
+                            key={col.id}
+                            className="px-6 py-4 cursor-pointer"
+                            onClick={() => setSelectedTrade(trade)}
+                          >
+                            {renderCell(col.id)}
+                          </td>
+                        ))}
                       </tr>
                     );
                   })}
