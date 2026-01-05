@@ -13,11 +13,11 @@ import {
   Menu, 
   X,
   LogOut,
-  Shield,
-  TrendingUp
+  Shield
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import ExpectancyLogo from '@/components/common/ExpectancyLogo';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
@@ -55,11 +55,11 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex flex-col flex-grow bg-slate-900/50 border-r border-slate-800/50 overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-800/50">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
+            <ExpectancyLogo className="w-10 h-10" />
             <div>
-              <h1 className="font-bold text-white">Expectancy</h1>
+              <h1 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: '0.05em' }}>
+                EXPECTANCY
+              </h1>
               <p className="text-xs text-slate-500">Trade the Math, Not the Noise</p>
             </div>
           </div>
@@ -117,10 +117,10 @@ export default function Layout({ children, currentPageName }) {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-white">Expectancy</span>
+            <ExpectancyLogo className="w-8 h-8" />
+            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              EXPECTANCY
+            </span>
           </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
