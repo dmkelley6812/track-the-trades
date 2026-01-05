@@ -137,7 +137,7 @@ export default function Dashboard() {
             <Button
               variant="outline"
               onClick={() => setShowImporter(true)}
-              className="border-slate-700 text-white hover:bg-slate-800 hover:text-white"
+              className="border-slate-700 text-slate-900 hover:bg-slate-800 hover:text-white bg-white"
             >
               <Upload className="w-4 h-4 mr-2" />
               Import CSV
