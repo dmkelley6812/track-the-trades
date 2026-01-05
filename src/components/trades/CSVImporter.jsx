@@ -388,9 +388,7 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     const text = await selectedFile.text();
     const { headers, rows } = parseCSV(text);
     const config = PLATFORM_CONFIGS[platform];
-    
     const parseErrors = [];
-    const config = PLATFORM_CONFIGS[platform];
     
     // Check if this is a balance history CSV
     if (config?.type === 'balance') {
