@@ -19,17 +19,13 @@ export default function JournalCard({ journal, onEdit }) {
   return (
     <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl overflow-hidden hover:border-slate-700/50 transition-all group">
       {/* Cover Image */}
-      {coverImage ? (
+      {coverImage && (
         <div className="w-full h-48 overflow-hidden bg-slate-800">
           <img
             src={coverImage.url}
             alt="Journal cover"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        </div>
-      ) : (
-        <div className="w-full h-48 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-          <ImageIcon className="w-12 h-12 text-slate-700" />
         </div>
       )}
 
