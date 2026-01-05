@@ -7,16 +7,18 @@ import { base44 } from '@/api/base44Client';
 
 const PLATFORM_CONFIGS = {
   tradingview: {
-    name: 'TradingView',
+    name: 'TradingView Orders',
+    description: 'Export from: Paper Trading → More → Export Data → Orders',
     columns: {
-      symbol: ['Symbol', 'Ticker'],
-      type: ['Type', 'Side', 'Direction'],
-      entry_price: ['Entry Price', 'Open Price', 'Entry'],
-      exit_price: ['Exit Price', 'Close Price', 'Exit'],
-      quantity: ['Quantity', 'Qty', 'Size', 'Shares'],
-      entry_date: ['Entry Date', 'Open Date', 'Entry Time', 'Date'],
-      exit_date: ['Exit Date', 'Close Date', 'Exit Time'],
-      pnl: ['P&L', 'Profit', 'PnL', 'Net P&L', 'Net Profit']
+      symbol: ['Symbol'],
+      side: ['Side'],
+      type: ['Type'],
+      quantity: ['Qty'],
+      fill_price: ['Fill Price'],
+      status: ['Status'],
+      commission: ['Commission'],
+      placing_time: ['Placing Time'],
+      closing_time: ['Closing Time']
     }
   },
   tradestation: {
@@ -102,6 +104,20 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
       return colName ? row[colName] : null;
     };
 
+    // For TradingView Orders format - this is a single order row
+    if (platform === 'tradingview') {
+      return {
+        symbol: getValue('symbol')?.replace(/.*:/, '').replace(/[0-9!]/g, '') || 'UNKNOWN',
+        side: getValue('side'),
+        quantity: parseFloat(getValue('quantity')) || 0,
+        fill_price: parseFloat(getValue('fill_price')) || 0,
+        commission: parseFloat(getValue('commission')) || 0,
+        time: getValue('closing_time') || getValue('placing_time'),
+        status: getValue('status')
+      };
+    }
+
+    // For other platforms (legacy format)
     const rawType = getValue('type')?.toLowerCase() || '';
     const trade_type = rawType.includes('short') || rawType.includes('sell') ? 'short' : 'long';
 
@@ -133,8 +149,79 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
       status: exit_price ? 'closed' : 'open',
       profit_loss,
       profit_loss_percent,
-      source: platform === 'tradingview' ? 'csv_import' : 'csv_import'
+      source: 'csv_import'
     };
+  };
+
+  const pairTradingViewOrders = (orders) => {
+    // Filter only filled orders
+    const filledOrders = orders.filter(o => o.status === 'Filled');
+    
+    // Group by symbol
+    const bySymbol = filledOrders.reduce((acc, order) => {
+      if (!acc[order.symbol]) acc[order.symbol] = [];
+      acc[order.symbol].push(order);
+      return acc;
+    }, {});
+    
+    const trades = [];
+    
+    // For each symbol, pair buy/sell orders
+    Object.entries(bySymbol).forEach(([symbol, orders]) => {
+      // Sort by time
+      const sorted = orders.sort((a, b) => new Date(a.time) - new Date(b.time));
+      
+      let position = null;
+      
+      sorted.forEach(order => {
+        if (!position) {
+          // Opening position
+          if (order.side === 'Buy' || order.side === 'Sell') {
+            position = {
+              symbol: order.symbol,
+              trade_type: order.side === 'Buy' ? 'long' : 'short',
+              entry_price: order.fill_price,
+              quantity: order.quantity,
+              entry_date: new Date(order.time).toISOString(),
+              fees: order.commission,
+              source: 'csv_import'
+            };
+          }
+        } else {
+          // Check if this closes the position
+          const isClosing = (position.trade_type === 'long' && order.side === 'Sell') ||
+                            (position.trade_type === 'short' && order.side === 'Buy');
+          
+          if (isClosing && order.quantity === position.quantity) {
+            // Position closed
+            position.exit_price = order.fill_price;
+            position.exit_date = new Date(order.time).toISOString();
+            position.fees += order.commission;
+            position.status = 'closed';
+            
+            // Calculate P&L
+            if (position.trade_type === 'long') {
+              position.profit_loss = (position.exit_price - position.entry_price) * position.quantity - position.fees;
+            } else {
+              position.profit_loss = (position.entry_price - position.exit_price) * position.quantity - position.fees;
+            }
+            
+            position.profit_loss_percent = ((position.profit_loss + position.fees) / (position.entry_price * position.quantity)) * 100;
+            
+            trades.push(position);
+            position = null;
+          }
+        }
+      });
+      
+      // If position still open, add it as open trade
+      if (position) {
+        position.status = 'open';
+        trades.push(position);
+      }
+    });
+    
+    return trades;
   };
 
   const handleFileSelect = async (e) => {
@@ -150,24 +237,48 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     const config = PLATFORM_CONFIGS[platform];
     
     const parseErrors = [];
-    const trades = rows.map((row, idx) => {
-      try {
-        const trade = mapRowToTrade(row, headers, config);
-        if (!trade.symbol || trade.symbol === 'UNKNOWN') {
-          parseErrors.push({ row: idx + 2, error: 'Missing symbol' });
+    
+    if (platform === 'tradingview') {
+      // Parse as orders first
+      const orders = rows.map((row, idx) => {
+        try {
+          return mapRowToTrade(row, headers, config);
+        } catch (err) {
+          parseErrors.push({ row: idx + 2, error: err.message });
+          return null;
         }
-        if (!trade.entry_price) {
-          parseErrors.push({ row: idx + 2, error: 'Missing entry price' });
-        }
-        return trade;
-      } catch (err) {
-        parseErrors.push({ row: idx + 2, error: err.message });
-        return null;
+      }).filter(Boolean);
+      
+      // Pair orders into trades
+      const trades = pairTradingViewOrders(orders);
+      
+      if (trades.length === 0) {
+        parseErrors.push({ row: 0, error: 'No completed trades found. Make sure you have paired Buy/Sell orders.' });
       }
-    }).filter(Boolean);
+      
+      setErrors(parseErrors);
+      setParsedData({ headers, trades, totalRows: rows.length });
+    } else {
+      // Legacy format parsing
+      const trades = rows.map((row, idx) => {
+        try {
+          const trade = mapRowToTrade(row, headers, config);
+          if (!trade.symbol || trade.symbol === 'UNKNOWN') {
+            parseErrors.push({ row: idx + 2, error: 'Missing symbol' });
+          }
+          if (!trade.entry_price) {
+            parseErrors.push({ row: idx + 2, error: 'Missing entry price' });
+          }
+          return trade;
+        } catch (err) {
+          parseErrors.push({ row: idx + 2, error: err.message });
+          return null;
+        }
+      }).filter(Boolean);
 
-    setErrors(parseErrors);
-    setParsedData({ headers, trades, totalRows: rows.length });
+      setErrors(parseErrors);
+      setParsedData({ headers, trades, totalRows: rows.length });
+    }
   };
 
   const handleImport = async () => {
@@ -241,6 +352,12 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
             ))}
           </SelectContent>
         </Select>
+        {PLATFORM_CONFIGS[platform].description && (
+          <p className="text-xs text-slate-500 mt-2 flex items-start gap-1">
+            <span className="text-emerald-400 font-medium">ℹ</span>
+            {PLATFORM_CONFIGS[platform].description}
+          </p>
+        )}
       </div>
 
       <div
