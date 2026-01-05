@@ -199,21 +199,47 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     try {
       const validTrades = parsedData.trades.filter(t => t.symbol && t.entry_price);
       
-      await base44.entities.Trade.bulkCreate(validTrades);
+      // Fetch existing trades to check for duplicates
+      const existingTrades = await base44.entities.Trade.list();
+      
+      // Filter out duplicates (matching entry_date, exit_date, entry_price, exit_price)
+      const { newTrades, duplicates } = validTrades.reduce((acc, trade) => {
+        const isDuplicate = existingTrades.some(existing => 
+          existing.entry_date === trade.entry_date &&
+          existing.exit_date === trade.exit_date &&
+          existing.entry_price === trade.entry_price &&
+          existing.exit_price === trade.exit_price &&
+          existing.symbol === trade.symbol
+        );
+        
+        if (isDuplicate) {
+          acc.duplicates.push(trade);
+        } else {
+          acc.newTrades.push(trade);
+        }
+        
+        return acc;
+      }, { newTrades: [], duplicates: [] });
+      
+      // Only import non-duplicate trades
+      if (newTrades.length > 0) {
+        await base44.entities.Trade.bulkCreate(newTrades);
+      }
       
       await base44.entities.ImportLog.create({
         source: 'tradingview_csv',
-        status: errors.length > 0 ? 'partial' : 'success',
+        status: errors.length > 0 || duplicates.length > 0 ? 'partial' : 'success',
         file_name: file.name,
-        trades_imported: validTrades.length,
-        trades_failed: errors.length,
+        trades_imported: newTrades.length,
+        trades_failed: errors.length + duplicates.length,
         errors_list: errors.slice(0, 10)
       });
 
       setImportResult({
         success: true,
-        imported: validTrades.length,
-        failed: errors.length
+        imported: newTrades.length,
+        failed: errors.length,
+        duplicates: duplicates.length
       });
 
       setTimeout(() => {
@@ -332,7 +358,8 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
                 <p className="font-medium text-emerald-400">Import Complete!</p>
                 <p className="text-sm text-emerald-300/70">
                   {importResult.imported} trades imported
-                  {importResult.failed > 0 && `, ${importResult.failed} skipped`}
+                  {importResult.duplicates > 0 && `, ${importResult.duplicates} duplicates skipped`}
+                  {importResult.failed > 0 && `, ${importResult.failed} errors`}
                 </p>
               </div>
             </>
