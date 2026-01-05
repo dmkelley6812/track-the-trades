@@ -197,16 +197,20 @@ export default function InsightsPage() {
                 ))}
               </div>
             </div>
-          ) : messages.length === 0 ? (
-            <div className="text-center mt-12">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mx-auto" />
-              <p className="text-slate-400 mt-4">Starting conversation...</p>
-            </div>
           ) : (
             <>
-              {messages.map((msg, idx) => (
-                <MessageBubble key={idx} message={msg} />
-              ))}
+              {messages.length === 0 ? (
+                <div className="text-center mt-12">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-8 h-8 text-slate-500" />
+                  </div>
+                  <p className="text-slate-400">Ask me anything about your trading performance</p>
+                </div>
+              ) : (
+                messages.map((msg, idx) => (
+                  <MessageBubble key={idx} message={msg} />
+                ))
+              )}
               <div ref={messagesEndRef} />
             </>
           )}
