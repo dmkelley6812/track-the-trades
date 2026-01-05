@@ -12,6 +12,7 @@ import {
   Activity,
   Loader2
 } from 'lucide-react';
+import { isAfter, isBefore } from 'date-fns';
 import StatsCard from '@/components/dashboard/StatsCard';
 import PnLChart from '@/components/dashboard/PnLChart';
 import RecentTrades from '@/components/dashboard/RecentTrades';
@@ -20,12 +21,18 @@ import TradeForm from '@/components/trades/TradeForm';
 import CSVImporter from '@/components/trades/CSVImporter';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
+import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
 
 export default function Dashboard() {
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [editingTrade, setEditingTrade] = useState(null);
   const [selectedTrade, setSelectedTrade] = useState(null);
+  const [dateFilter, setDateFilter] = useState(() => {
+    return localStorage.getItem('dashboard_date_filter') || 'current_week';
+  });
+  const [customStartDate, setCustomStartDate] = useState(null);
+  const [customEndDate, setCustomEndDate] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -73,8 +80,18 @@ export default function Dashboard() {
     }
   });
 
-  // Calculate stats
-  const closedTrades = trades.filter(t => t.status === 'closed');
+  // Filter trades by date range
+  const dateRange = getDateRange(dateFilter, customStartDate, customEndDate);
+  const filteredTrades = trades.filter(trade => {
+    if (trade.status !== 'closed' || !trade.exit_date) return true; // Include open trades
+    if (!dateRange) return true;
+    
+    const tradeDate = new Date(trade.exit_date);
+    return !isBefore(tradeDate, dateRange.start) && !isAfter(tradeDate, dateRange.end);
+  });
+
+  // Calculate stats from filtered trades
+  const closedTrades = filteredTrades.filter(t => t.status === 'closed');
   const totalPnL = closedTrades.reduce((sum, t) => sum + (t.profit_loss || 0), 0);
   const wins = closedTrades.filter(t => t.profit_loss > 0).length;
   const losses = closedTrades.filter(t => t.profit_loss < 0).length;
@@ -109,6 +126,13 @@ export default function Dashboard() {
 
   const handleOnboardingComplete = (userData) => {
     updateUserMutation.mutate(userData);
+  };
+
+  const handleDateFilterChange = (filterType, customStart, customEnd) => {
+    setDateFilter(filterType);
+    setCustomStartDate(customStart);
+    setCustomEndDate(customEnd);
+    localStorage.setItem('dashboard_date_filter', filterType);
   };
 
   if (userLoading) {
@@ -155,6 +179,14 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Date Filter */}
+        <div className="mb-6">
+          <DateFilter 
+            value={dateFilter} 
+            onChange={handleDateFilterChange}
+          />
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
@@ -176,8 +208,8 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Total Trades"
-            value={trades.length}
-            subtitle={`${trades.filter(t => t.status === 'open').length} open`}
+            value={filteredTrades.length}
+            subtitle={`${filteredTrades.filter(t => t.status === 'open').length} open`}
             icon={Activity}
           />
         </div>
@@ -188,7 +220,7 @@ export default function Dashboard() {
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
               <h2 className="text-lg font-semibold mb-4">Cumulative P&L</h2>
-              <PnLChart trades={trades} />
+              <PnLChart trades={filteredTrades} />
             </div>
           </div>
 
@@ -206,7 +238,7 @@ export default function Dashboard() {
               <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
             </div>
           ) : (
-            <RecentTrades trades={trades} onTradeClick={setSelectedTrade} />
+            <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
           )}
         </div>
       </div>
