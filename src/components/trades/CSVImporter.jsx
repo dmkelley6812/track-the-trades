@@ -154,9 +154,9 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     };
 
     // For TradingView Orders format - this is a single order row
-    if (platform === 'tradingview') {
+    if (platform === 'tradingview' || platform === 'tradingview_orders') {
       return {
-        symbol: getValue('symbol')?.replace(/.*:/, '').replace(/[0-9!]/g, '') || 'UNKNOWN',
+        symbol: getValue('symbol') || 'UNKNOWN', // Keep full symbol for metadata lookup
         side: getValue('side'),
         quantity: parseFloat(getValue('quantity')) || 0,
         fill_price: parseFloat(getValue('fill_price')) || 0,
@@ -203,15 +203,21 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
   };
 
   const getPointValue = (symbol) => {
-    // Check if we have metadata for this symbol
+    // Check if we have metadata for this exact symbol
     if (instrumentMetadata[symbol]?.point_value) {
       return instrumentMetadata[symbol].point_value;
     }
     
-    // Extract base symbol (remove exchange prefix and contract month)
+    // Try to find by base symbol in metadata (in case symbol format varies)
     const baseSymbol = symbol.replace(/.*:/, '').replace(/[0-9!]/g, '');
+    for (const [key, value] of Object.entries(instrumentMetadata)) {
+      const metaBase = key.replace(/.*:/, '').replace(/[0-9!]/g, '');
+      if (metaBase === baseSymbol && value.point_value) {
+        return value.point_value;
+      }
+    }
     
-    // Check fallback map
+    // Check fallback map with base symbol
     return FUTURES_POINT_VALUES[baseSymbol] || 1;
   };
 
