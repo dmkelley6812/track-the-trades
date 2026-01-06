@@ -21,6 +21,7 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
     exit_date: trade?.exit_date ? new Date(trade.exit_date).toISOString().slice(0, 16) : '',
     status: trade?.status || 'closed',
     fees: trade?.fees || 0,
+    point_value: trade?.point_value || '',
     notes: trade?.notes || '',
     setup_type: trade?.setup_type || '',
     tags: trade?.tags?.join(', ') || '',
@@ -41,15 +42,16 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
     const exit = parseFloat(formData.exit_price);
     const qty = parseFloat(formData.quantity);
     const fees = parseFloat(formData.fees) || 0;
+    const point_value = parseFloat(formData.point_value) || 1;
     
     let pnl;
     if (formData.trade_type === 'long') {
-      pnl = (exit - entry) * qty - fees;
+      pnl = (exit - entry) * point_value * qty - fees;
     } else {
-      pnl = (entry - exit) * qty - fees;
+      pnl = (entry - exit) * point_value * qty - fees;
     }
     
-    const pnlPercent = ((pnl + fees) / (entry * qty)) * 100;
+    const pnlPercent = ((pnl + fees) / (entry * point_value * qty)) * 100;
     
     return { pnl, pnlPercent };
   };
@@ -65,6 +67,7 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
       exit_price: formData.exit_price ? parseFloat(formData.exit_price) : null,
       quantity: parseFloat(formData.quantity),
       fees: parseFloat(formData.fees) || 0,
+      point_value: formData.point_value ? parseFloat(formData.point_value) : undefined,
       status: isOpen ? 'open' : 'closed',
       profit_loss: pnlCalc?.pnl || null,
       profit_loss_percent: pnlCalc?.pnlPercent || null,
@@ -141,6 +144,21 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
             className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
             required
           />
+        </div>
+
+        <div className="col-span-2">
+          <Label className="text-slate-300">Point Value (Futures Multiplier)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            value={formData.point_value}
+            onChange={(e) => handleChange('point_value', e.target.value)}
+            placeholder="1 (leave blank for stocks, or enter multiplier for futures)"
+            className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            For stocks/forex: leave blank or use 1. For futures: enter the point value (e.g., 20 for NQ, 50 for ES)
+          </p>
         </div>
 
         <div className="col-span-2">
