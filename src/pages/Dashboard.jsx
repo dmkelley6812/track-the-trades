@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
   Plus, 
   Upload, 
@@ -11,25 +12,41 @@ import {
   Target, 
   Activity,
   Loader2,
-  Calculator
+  Calculator,
+  Settings
 } from 'lucide-react';
-import { isAfter, isBefore } from 'date-fns';
+import { isAfter, isBefore, format as formatDate } from 'date-fns';
+import { toast } from 'sonner';
+
 import StatsCard from '@/components/dashboard/StatsCard';
 import PnLChart from '@/components/dashboard/PnLChart';
 import RecentTrades from '@/components/dashboard/RecentTrades';
 import WinRateGauge from '@/components/dashboard/WinRateGauge';
 import PerformanceCalendar from '@/components/dashboard/PerformanceCalendar';
-import TradeForm from '@/components/trades/TradeForm';
 import TradeFormEnhanced from '@/components/trades/TradeFormEnhanced';
 import CSVImporter from '@/components/trades/CSVImporter';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
+import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
+import DashboardWidget from '@/components/dashboard/DashboardWidget';
 import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
+import { WIDGET_TYPES, DEFAULT_LAYOUT, WIDGET_CONFIG } from '@/components/dashboard/widgetConfig';
+
+// Import new widget components
+import AvgWinWidget from '@/components/dashboard/widgets/AvgWinWidget';
+import AvgLossWidget from '@/components/dashboard/widgets/AvgLossWidget';
+import BestDayWidget from '@/components/dashboard/widgets/BestDayWidget';
+import WorstDayWidget from '@/components/dashboard/widgets/WorstDayWidget';
+import LargestDrawdownWidget from '@/components/dashboard/widgets/LargestDrawdownWidget';
+import PnLByDayOfWeekWidget from '@/components/dashboard/widgets/PnLByDayOfWeekWidget';
+import TradeCountByDayWidget from '@/components/dashboard/widgets/TradeCountByDayWidget';
+import PnLByStrategyWidget from '@/components/dashboard/widgets/PnLByStrategyWidget';
 
 export default function Dashboard() {
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
   const [editingTrade, setEditingTrade] = useState(null);
   const [selectedTrade, setSelectedTrade] = useState(null);
   const [dateFilter, setDateFilter] = useState(() => {
@@ -37,6 +54,7 @@ export default function Dashboard() {
   });
   const [customStartDate, setCustomStartDate] = useState(null);
   const [customEndDate, setCustomEndDate] = useState(null);
+  const [draggingId, setDraggingId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -50,8 +68,18 @@ export default function Dashboard() {
     enabled: !!user
   });
 
-  // Enrich trades with calculated P&L
   const trades = enrichTradesWithPnL(rawTrades);
+
+  const updateUserMutation = useMutation({
+    mutationFn: (data) => base44.auth.updateMe(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success('Dashboard layout saved');
+    },
+    onError: () => {
+      toast.error('Failed to save layout');
+    }
+  });
 
   const createTradeMutation = useMutation({
     mutationFn: (data) => base44.entities.Trade.create(data),
@@ -80,24 +108,21 @@ export default function Dashboard() {
     }
   });
 
-  const updateUserMutation = useMutation({
-    mutationFn: (data) => base44.auth.updateMe(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-    }
-  });
+  // Get layout from user or use default
+  const layout = user?.dashboard_layout || DEFAULT_LAYOUT;
+  const visibleWidgets = layout.filter(w => w.visible);
 
   // Filter trades by date range
   const dateRange = getDateRange(dateFilter, customStartDate, customEndDate);
   const filteredTrades = trades.filter(trade => {
-    if (trade.status !== 'closed' || !trade.exit_date) return true; // Include open trades
+    if (trade.status !== 'closed' || !trade.exit_date) return true;
     if (!dateRange) return true;
     
     const tradeDate = new Date(trade.exit_date);
     return !isBefore(tradeDate, dateRange.start) && !isAfter(tradeDate, dateRange.end);
   });
 
-  // Calculate stats from filtered trades
+  // Calculate comprehensive stats
   const closedTrades = filteredTrades.filter(t => t.status === 'closed');
   const totalPnL = closedTrades.reduce((sum, t) => sum + (t.profit_loss || 0), 0);
   const wins = closedTrades.filter(t => t.profit_loss > 0).length;
@@ -111,6 +136,200 @@ export default function Dashboard() {
   const expectancy = closedTrades.length > 0 
     ? (winRate / 100 * avgWin) - ((100 - winRate) / 100 * avgLoss)
     : 0;
+
+  // Calculate best/worst day and drawdown
+  const dailyPnL = {};
+  closedTrades.forEach(trade => {
+    const date = formatDate(new Date(trade.exit_date), 'yyyy-MM-dd');
+    dailyPnL[date] = (dailyPnL[date] || 0) + trade.profit_loss;
+  });
+
+  const dailyPnLArray = Object.entries(dailyPnL).map(([date, pnl]) => ({ date, pnl }));
+  const bestDay = dailyPnLArray.length > 0 
+    ? dailyPnLArray.reduce((best, day) => day.pnl > best.pnl ? day : best, dailyPnLArray[0])
+    : null;
+  const worstDay = dailyPnLArray.length > 0
+    ? dailyPnLArray.reduce((worst, day) => day.pnl < worst.pnl ? day : worst, dailyPnLArray[0])
+    : null;
+
+  // Calculate largest drawdown
+  let peak = 0;
+  let largestDrawdown = 0;
+  let cumulativePnL = 0;
+  closedTrades.forEach(trade => {
+    cumulativePnL += trade.profit_loss;
+    if (cumulativePnL > peak) peak = cumulativePnL;
+    const drawdown = peak - cumulativePnL;
+    if (drawdown > largestDrawdown) largestDrawdown = drawdown;
+  });
+
+  const stats = {
+    totalPnL,
+    winRate,
+    wins,
+    losses,
+    profitFactor,
+    expectancy,
+    totalTrades: filteredTrades.length,
+    openTrades: filteredTrades.filter(t => t.status === 'open').length,
+    avgWin,
+    avgLoss,
+    bestDay,
+    worstDay,
+    largestDrawdown,
+  };
+
+  const handleLayoutChange = (newLayout) => {
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
+  };
+
+  const handleResetLayout = () => {
+    updateUserMutation.mutate({ dashboard_layout: DEFAULT_LAYOUT });
+  };
+
+  const handleRemoveWidget = (widgetId) => {
+    const newLayout = layout.map(w => w.id === widgetId ? { ...w, visible: false } : w);
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
+  };
+
+  const handleResizeWidget = (widgetId, newSize) => {
+    const newLayout = layout.map(w => w.id === widgetId ? { ...w, size: newSize } : w);
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
+  };
+
+  const handleDragEnd = (result) => {
+    setDraggingId(null);
+    if (!result.destination) return;
+
+    const items = Array.from(visibleWidgets);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Reconstruct full layout with new order
+    const newLayout = layout.map(widget => {
+      if (!widget.visible) return widget;
+      const newIndex = items.findIndex(w => w.id === widget.id);
+      return { ...widget, order: newIndex };
+    });
+
+    // Sort by order and remove order property
+    const sortedLayout = newLayout
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+      .map(({ order, ...rest }) => rest);
+
+    updateUserMutation.mutate({ dashboard_layout: sortedLayout });
+  };
+
+  const renderWidget = (widget) => {
+    switch (widget.type) {
+      case WIDGET_TYPES.TOTAL_PNL:
+        return (
+          <StatsCard
+            title="Total P&L"
+            value={
+              <span className={stats.totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}>
+                ${stats.totalPnL.toFixed(2)}
+              </span>
+            }
+            icon={DollarSign}
+            info="Total Profit & Loss across all closed trades in the selected time period"
+          />
+        );
+      case WIDGET_TYPES.WIN_RATE:
+        return (
+          <StatsCard
+            title="Win Rate"
+            value={`${stats.winRate.toFixed(1)}%`}
+            subtitle={`${stats.wins}W / ${stats.losses}L`}
+            icon={Target}
+            info="Percentage of winning trades out of total trades"
+          />
+        );
+      case WIDGET_TYPES.PROFIT_FACTOR:
+        return (
+          <StatsCard
+            title="Profit Factor"
+            value={
+              <span className={stats.profitFactor >= 1.5 ? "text-emerald-400" : stats.profitFactor >= 1 ? "text-white" : "text-red-400"}>
+                {stats.profitFactor.toFixed(2)}
+              </span>
+            }
+            icon={TrendingUp}
+            info="Ratio of gross profit to gross loss"
+          />
+        );
+      case WIDGET_TYPES.EXPECTANCY:
+        return (
+          <StatsCard
+            title="Expectancy"
+            value={
+              <span className={stats.expectancy >= 0 ? "text-emerald-400" : "text-red-400"}>
+                ${stats.expectancy.toFixed(2)}
+              </span>
+            }
+            subtitle="Per trade"
+            icon={Calculator}
+            info="Average amount you can expect to win or lose per trade"
+          />
+        );
+      case WIDGET_TYPES.TOTAL_TRADES:
+        return (
+          <StatsCard
+            title="Total Trades"
+            value={stats.totalTrades}
+            subtitle={`${stats.openTrades} open`}
+            icon={Activity}
+            info="Total number of trades in the selected time period"
+          />
+        );
+      case WIDGET_TYPES.AVG_WIN:
+        return <AvgWinWidget stats={stats} />;
+      case WIDGET_TYPES.AVG_LOSS:
+        return <AvgLossWidget stats={stats} />;
+      case WIDGET_TYPES.BEST_DAY:
+        return <BestDayWidget stats={stats} />;
+      case WIDGET_TYPES.WORST_DAY:
+        return <WorstDayWidget stats={stats} />;
+      case WIDGET_TYPES.LARGEST_DRAWDOWN:
+        return <LargestDrawdownWidget stats={stats} />;
+      case WIDGET_TYPES.PNL_CHART:
+        return (
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
+            <h2 className="text-lg font-semibold mb-4">Cumulative P&L</h2>
+            <PnLChart trades={filteredTrades} />
+          </div>
+        );
+      case WIDGET_TYPES.WIN_RATE_GAUGE:
+        return (
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 flex items-center justify-center">
+            <WinRateGauge winRate={stats.winRate} wins={stats.wins} losses={stats.losses} />
+          </div>
+        );
+      case WIDGET_TYPES.RECENT_TRADES:
+        return (
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
+            <h2 className="text-lg font-semibold mb-4">Recent Trades</h2>
+            {tradesLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+              </div>
+            ) : (
+              <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
+            )}
+          </div>
+        );
+      case WIDGET_TYPES.TRADE_CALENDAR:
+        return <PerformanceCalendar trades={filteredTrades} dateRange={dateRange} />;
+      case WIDGET_TYPES.PNL_BY_DAY_OF_WEEK:
+        return <PnLByDayOfWeekWidget trades={filteredTrades} />;
+      case WIDGET_TYPES.TRADE_COUNT_BY_DAY:
+        return <TradeCountByDayWidget trades={filteredTrades} />;
+      case WIDGET_TYPES.PNL_BY_STRATEGY:
+        return <PnLByStrategyWidget trades={filteredTrades} />;
+      default:
+        return <div className="bg-slate-800/50 p-4 rounded-lg">Unknown widget</div>;
+    }
+  };
 
   const handleTradeSubmit = (data) => {
     if (editingTrade) {
@@ -156,7 +375,6 @@ export default function Dashboard() {
     }
   };
 
-  // Load persisted custom dates on mount
   useEffect(() => {
     const savedStart = localStorage.getItem('dashboard_custom_start');
     const savedEnd = localStorage.getItem('dashboard_custom_end');
@@ -174,7 +392,6 @@ export default function Dashboard() {
     );
   }
 
-  // Show onboarding for new users
   if (user && !user.onboarding_completed) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} user={user} />;
   }
@@ -191,11 +408,19 @@ export default function Dashboard() {
           <div className="flex gap-3">
             <Button
               variant="outline"
+              onClick={() => setShowCustomizer(true)}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Customize
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setShowImporter(true)}
-              className="border-slate-700 text-slate-900 hover:bg-slate-800 hover:text-white bg-white"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Import CSV
+              Import
             </Button>
             <Button
               onClick={() => {
@@ -221,91 +446,50 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
-          <StatsCard
-            title="Total P&L"
-            value={
-              <span className={totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}>
-                ${totalPnL.toFixed(2)}
-              </span>
-            }
-            icon={DollarSign}
-            info="Total Profit & Loss across all closed trades in the selected time period. This is your net gain or loss after commissions and fees."
-          />
-          <StatsCard
-            title="Win Rate"
-            value={`${winRate.toFixed(1)}%`}
-            subtitle={`${wins}W / ${losses}L`}
-            icon={Target}
-            info="Percentage of winning trades out of total trades. Calculated as: (Winning Trades ÷ Total Trades) × 100. A higher win rate means you're right more often."
-          />
-          <StatsCard
-            title="Profit Factor"
-            value={
-              <span className={profitFactor >= 1.5 ? "text-emerald-400" : profitFactor >= 1 ? "text-white" : "text-red-400"}>
-                {profitFactor.toFixed(2)}
-              </span>
-            }
-            icon={TrendingUp}
-            info="Ratio of gross profit to gross loss. Calculated as: Total Winning $ ÷ Total Losing $. A value above 2.0 is excellent, above 1.5 is good, and below 1.0 means you're losing money."
-          />
-          <StatsCard
-            title="Expectancy"
-            value={
-              <span className={expectancy >= 0 ? "text-emerald-400" : "text-red-400"}>
-                ${expectancy.toFixed(2)}
-              </span>
-            }
-            subtitle="Per trade"
-            icon={Calculator}
-            info="Average amount you can expect to win or lose per trade. Calculated as: (Win Rate × Avg Win) - (Loss Rate × Avg Loss). Positive expectancy means your system is profitable long-term."
-          />
-          <StatsCard
-            title="Total Trades"
-            value={filteredTrades.length}
-            subtitle={`${filteredTrades.filter(t => t.status === 'open').length} open`}
-            icon={Activity}
-            info="Total number of trades in the selected time period, including both open and closed positions."
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart & Win Rate */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold mb-4">Cumulative P&L</h2>
-              <PnLChart trades={filteredTrades} />
-            </div>
-          </div>
-
-          {/* Win Rate Gauge */}
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 flex items-center justify-center">
-            <WinRateGauge winRate={winRate} wins={wins} losses={losses} />
-          </div>
-        </div>
-
-        {/* Recent Trades */}
-        <div className="mt-6 bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Trades</h2>
-          {tradesLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-            </div>
-          ) : (
-            <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
-          )}
-        </div>
-
-        {/* Performance Calendar */}
-        <div className="mt-6">
-          <PerformanceCalendar 
-            trades={filteredTrades} 
-            dateRange={dateRange}
-          />
-        </div>
+        {/* Widgets Grid with Drag & Drop */}
+        <DragDropContext onDragEnd={handleDragEnd} onDragStart={(start) => setDraggingId(start.draggableId)}>
+          <Droppable droppableId="dashboard" direction="horizontal">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="grid grid-cols-4 gap-4"
+              >
+                {visibleWidgets.map((widget, index) => (
+                  <Draggable key={widget.id} draggableId={widget.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <DashboardWidget
+                          widget={widget}
+                          onRemove={handleRemoveWidget}
+                          onResize={handleResizeWidget}
+                          isDragging={snapshot.isDragging}
+                        >
+                          {renderWidget(widget)}
+                        </DashboardWidget>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
+
+      {/* Dashboard Customizer */}
+      <DashboardCustomizer
+        open={showCustomizer}
+        onClose={() => setShowCustomizer(false)}
+        layout={layout}
+        onLayoutChange={handleLayoutChange}
+        onReset={handleResetLayout}
+      />
 
       {/* Trade Form Sheet */}
       <Sheet open={showTradeForm} onOpenChange={setShowTradeForm}>
