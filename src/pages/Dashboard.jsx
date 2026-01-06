@@ -20,6 +20,7 @@ import RecentTrades from '@/components/dashboard/RecentTrades';
 import WinRateGauge from '@/components/dashboard/WinRateGauge';
 import PerformanceCalendar from '@/components/dashboard/PerformanceCalendar';
 import TradeForm from '@/components/trades/TradeForm';
+import TradeFormEnhanced from '@/components/trades/TradeFormEnhanced';
 import CSVImporter from '@/components/trades/CSVImporter';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
