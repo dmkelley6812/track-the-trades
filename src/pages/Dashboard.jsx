@@ -309,8 +309,8 @@ export default function Dashboard() {
 
       {/* Trade Form Sheet */}
       <Sheet open={showTradeForm} onOpenChange={setShowTradeForm}>
-        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-lg overflow-y-auto">
-          <TradeForm
+        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-4xl overflow-y-auto">
+          <TradeFormEnhanced
             trade={editingTrade}
             onSubmit={handleTradeSubmit}
             onCancel={() => {
