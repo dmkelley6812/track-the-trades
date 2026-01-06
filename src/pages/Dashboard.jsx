@@ -379,27 +379,31 @@ export default function Dashboard() {
         return <LargestDrawdownWidget stats={stats} />;
       case WIDGET_TYPES.PNL_CHART:
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Cumulative P&L</h2>
-            <PnLChart trades={filteredTrades} />
+            <div className="flex-1">
+              <PnLChart trades={filteredTrades} />
+            </div>
           </div>
         );
       case WIDGET_TYPES.WIN_RATE_GAUGE:
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 flex items-center justify-center">
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex items-center justify-center">
             <WinRateGauge winRate={stats.winRate} wins={stats.wins} losses={stats.losses} />
           </div>
         );
       case WIDGET_TYPES.RECENT_TRADES:
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Recent Trades</h2>
             {tradesLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
               </div>
             ) : (
-              <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
+              <div className="flex-1 overflow-auto">
+                <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
+              </div>
             )}
           </div>
         );
