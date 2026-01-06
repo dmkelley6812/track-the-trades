@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
-import JournalForm from '@/components/journal/JournalForm';
+import JournalFormEnhanced from '@/components/journal/JournalFormEnhanced';
 import JournalCard from '@/components/journal/JournalCard';
 import JournalDetailView from '@/components/journal/JournalDetailView';
 
@@ -199,10 +199,9 @@ export default function Journal() {
 
       {/* Journal Form Sheet */}
       <Sheet open={showJournalForm} onOpenChange={setShowJournalForm}>
-        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-lg overflow-y-auto">
-          <JournalForm
+        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-4xl overflow-y-auto">
+          <JournalFormEnhanced
             journal={editingJournal}
-            dailyStats={editingJournal ? null : todayStats}
             onSubmit={handleJournalSubmit}
             onCancel={() => {
               setShowJournalForm(false);
