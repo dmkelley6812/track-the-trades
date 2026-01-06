@@ -81,6 +81,7 @@ export default function JournalFormEnhanced({ journal, onSubmit, onCancel, isLoa
 
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showTradeSelector, setShowTradeSelector] = useState(false);
   const fileInputRef = useRef(null);
 
   const { data: allTrades = [] } = useQuery({
@@ -153,6 +154,7 @@ export default function JournalFormEnhanced({ journal, onSubmit, onCancel, isLoa
       ? current.filter(id => id !== tradeId)
       : [...current, tradeId];
     handleChange('linked_trade_ids', updated);
+    setShowTradeSelector(false);
   };
 
   const linkAllTradesForDate = async () => {
@@ -326,45 +328,58 @@ export default function JournalFormEnhanced({ journal, onSubmit, onCancel, isLoa
               </div>
             )}
 
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search trades by symbol..."
-              className="bg-slate-800/50 border-slate-700 text-white"
-            />
+            <div className="relative">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowTradeSelector(true)}
+                placeholder="Search trades by symbol..."
+                className="bg-slate-800/50 border-slate-700 text-white"
+              />
 
-            <ScrollArea className="h-48 border border-slate-700 rounded-lg">
-              <div className="p-2 space-y-1">
-                {filteredTrades.map(trade => (
-                  <button
-                    key={trade.id}
-                    type="button"
-                    onClick={() => toggleTrade(trade.id)}
-                    className={cn(
-                      "w-full flex items-center justify-between p-2 rounded-lg transition-colors text-left",
-                      formData.linked_trade_ids.includes(trade.id)
-                        ? "bg-emerald-500/20 border border-emerald-500/30"
-                        : "hover:bg-slate-800/50"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">{trade.symbol}</span>
-                      <span className="text-xs text-slate-400">
-                        {format(new Date(trade.entry_date), 'MMM d')}
-                      </span>
-                    </div>
-                    {trade.profit_loss !== null && (
-                      <span className={cn(
-                        "text-sm font-medium",
-                        trade.profit_loss >= 0 ? "text-emerald-400" : "text-red-400"
-                      )}>
-                        {trade.profit_loss >= 0 ? '+' : ''}${trade.profit_loss.toFixed(2)}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+              {showTradeSelector && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowTradeSelector(false)}
+                  />
+                  <div className="absolute z-20 w-full mt-1">
+                    <ScrollArea className="h-48 border border-slate-700 rounded-lg bg-slate-900 shadow-xl">
+                      <div className="p-2 space-y-1">
+                        {filteredTrades.map(trade => (
+                          <button
+                            key={trade.id}
+                            type="button"
+                            onClick={() => toggleTrade(trade.id)}
+                            className={cn(
+                              "w-full flex items-center justify-between p-2 rounded-lg transition-colors text-left",
+                              formData.linked_trade_ids.includes(trade.id)
+                                ? "bg-emerald-500/20 border border-emerald-500/30"
+                                : "hover:bg-slate-800/50"
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-white">{trade.symbol}</span>
+                              <span className="text-xs text-slate-400">
+                                {format(new Date(trade.entry_date), 'MMM d')}
+                              </span>
+                            </div>
+                            {trade.profit_loss !== null && (
+                              <span className={cn(
+                                "text-sm font-medium",
+                                trade.profit_loss >= 0 ? "text-emerald-400" : "text-red-400"
+                              )}>
+                                {trade.profit_loss >= 0 ? '+' : ''}${trade.profit_loss.toFixed(2)}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div>
