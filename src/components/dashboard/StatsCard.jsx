@@ -34,14 +34,14 @@ export default function StatsCard({ title, value, subtitle, icon: Icon, trend, t
         )}
       </div>
       
-      <div className="space-y-1">
+      <div className="space-y-1 text-center">
         <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
         {subtitle && (
           <p className="text-xs text-slate-500">{subtitle}</p>
         )}
         {trend !== undefined && (
           <div className={cn(
-            "flex items-center gap-1 text-xs font-medium mt-1",
+            "flex items-center justify-center gap-1 text-xs font-medium mt-1",
             trendUp ? "text-emerald-400" : "text-red-400"
           )}>
             <span>{trendUp ? "↑" : "↓"}</span>
