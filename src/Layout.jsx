@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
   { name: 'Trades', page: 'Trades', icon: LineChart },
   { name: 'Journal', page: 'Journal', icon: BookOpen },
+  { name: 'Strategies', page: 'Strategies', icon: BookOpen },
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
   { name: 'Insights', page: 'Insights', icon: Sparkles },
   { name: 'Settings', page: 'Settings', icon: Settings },
