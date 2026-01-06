@@ -1,15 +1,13 @@
-import { MoreVertical, Trash2, Minimize2, Square, Maximize2 } from 'lucide-react';
+import { MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { WIDGET_CONFIG, WIDGET_SIZES } from './widgetConfig';
+import { WIDGET_CONFIG } from './widgetConfig';
+import GridSizeSelector from './GridSizeSelector';
 
 export default function DashboardWidget({ 
   widget, 
@@ -18,41 +16,21 @@ export default function DashboardWidget({
   onResize,
 }) {
   const config = WIDGET_CONFIG[widget.type];
-  const canResize = config?.allowedSizes?.length > 1;
+  const constraints = config?.constraints;
 
-  const getSizeIcon = (size) => {
-    switch (size) {
-      case WIDGET_SIZES.SMALL:
-        return <Minimize2 className="w-4 h-4 mr-2" />;
-      case WIDGET_SIZES.MEDIUM_TALL:
-        return <Square className="w-4 h-4 mr-2" />;
-      case WIDGET_SIZES.MEDIUM_SQUARE:
-        return <Square className="w-4 h-4 mr-2" />;
-      case WIDGET_SIZES.LARGE:
-        return <Maximize2 className="w-4 h-4 mr-2" />;
-      default:
-        return null;
-    }
-  };
-
-  const getSizeLabel = (size) => {
-    switch (size) {
-      case WIDGET_SIZES.SMALL:
-        return 'Small';
-      case WIDGET_SIZES.MEDIUM_TALL:
-        return 'Medium (Tall)';
-      case WIDGET_SIZES.MEDIUM_SQUARE:
-        return 'Medium (Square)';
-      case WIDGET_SIZES.LARGE:
-        return 'Large';
-      default:
-        return size;
-    }
+  const handleSizeChange = (newSize) => {
+    onResize(widget.id, newSize);
   };
 
   return (
     <div className="relative group h-full">
-      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+        <GridSizeSelector
+          currentSize={{ w: widget.w, h: widget.h }}
+          onSizeChange={handleSizeChange}
+          maxWidth={constraints?.maxW || 4}
+          maxHeight={constraints?.maxH || 4}
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -64,26 +42,6 @@ export default function DashboardWidget({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-slate-800 border-slate-700" align="end">
-            {canResize && (
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="text-white hover:bg-slate-700">
-                  Resize
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="bg-slate-800 border-slate-700">
-                  {config.allowedSizes.map((size) => (
-                    <DropdownMenuItem
-                      key={size}
-                      onClick={() => onResize(widget.id, size)}
-                      className="text-white hover:bg-slate-700"
-                      disabled={widget.size === size}
-                    >
-                      {getSizeIcon(size)}
-                      {getSizeLabel(size)}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            )}
             <DropdownMenuItem
               onClick={() => onRemove(widget.id)}
               className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
