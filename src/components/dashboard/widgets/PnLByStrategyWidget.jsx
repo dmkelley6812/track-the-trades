@@ -34,16 +34,17 @@ export default function PnLByStrategyWidget({ trades }) {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 flex items-center justify-center h-64">
+      <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 h-full flex items-center justify-center">
         <p className="text-slate-500 text-sm">No strategy data available</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 h-full flex flex-col">
       <h3 className="text-sm font-medium text-slate-400 mb-4">P&L by Strategy</h3>
-      <ResponsiveContainer width="100%" height={200}>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData}>
           <XAxis dataKey="name" stroke="#94a3b8" style={{ fontSize: '12px' }} angle={-45} textAnchor="end" height={80} />
           <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
@@ -62,6 +63,7 @@ export default function PnLByStrategyWidget({ trades }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

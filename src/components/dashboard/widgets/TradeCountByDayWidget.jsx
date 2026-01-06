@@ -15,9 +15,10 @@ export default function TradeCountByDayWidget({ trades }) {
   });
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4">
+    <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 h-full flex flex-col">
       <h3 className="text-sm font-medium text-slate-400 mb-4">Trade Count by Day</h3>
-      <ResponsiveContainer width="100%" height={180}>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
         <BarChart data={dayData}>
           <XAxis dataKey="day" stroke="#94a3b8" style={{ fontSize: '12px' }} />
           <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
@@ -31,6 +32,7 @@ export default function TradeCountByDayWidget({ trades }) {
           <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

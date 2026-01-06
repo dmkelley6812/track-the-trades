@@ -108,7 +108,7 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
   };
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6">
+    <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
       {/* Header with navigation */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Daily Performance</h2>
@@ -139,7 +139,8 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
         </div>
       </div>
       
-      <div className="grid grid-cols-7 gap-2">
+      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="grid grid-cols-7 gap-2 flex-1">
         {/* Day headers */}
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="text-center text-xs font-medium text-slate-500 pb-2">
@@ -209,6 +210,7 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
             </button>
           );
         })}
+      </div>
       </div>
       
       {/* Legend */}
