@@ -148,7 +148,7 @@ export function getWidgetSizeClass(size) {
     case WIDGET_SIZES.MEDIUM:
       return 'col-span-2';
     case WIDGET_SIZES.LARGE:
-      return 'col-span-3';
+      return 'col-span-4';
     default:
       return 'col-span-2';
   }

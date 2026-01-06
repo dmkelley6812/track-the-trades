@@ -453,7 +453,7 @@ export default function Dashboard() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="grid grid-cols-3 gap-4"
+                className="grid grid-cols-4 gap-4"
               >
                 {visibleWidgets.map((widget, index) => (
                   <Draggable key={widget.id} draggableId={widget.id} index={index}>
