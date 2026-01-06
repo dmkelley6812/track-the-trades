@@ -92,11 +92,11 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
   const { data: journalEntries = [] } = useQuery({
     queryKey: ['journal-by-trade', trade?.id],
     queryFn: async () => {
-      if (!trade?.entry_date) return [];
-      const date = format(new Date(trade.entry_date), 'yyyy-MM-dd');
-      return await base44.entities.Journal.filter({ date });
+      if (!trade?.id) return [];
+      const allJournals = await base44.entities.Journal.list();
+      return allJournals.filter(j => j.linked_trade_ids?.includes(trade.id));
     },
-    enabled: !!trade?.id && !!trade?.entry_date
+    enabled: !!trade?.id
   });
 
   if (!trade) return null;
@@ -452,14 +452,19 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
                       {journalEntries.map((entry) => (
                         <div 
                           key={entry.id}
-                          className="flex items-start gap-3 p-3 bg-slate-900/50 rounded-lg hover:bg-slate-900/70 transition-colors"
+                          className="flex items-start gap-3 p-3 bg-slate-900/50 rounded-lg hover:bg-slate-900/70 transition-colors cursor-pointer"
                         >
                           <FileText className="w-4 h-4 text-slate-500 mt-0.5" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white truncate">
-                              {entry.title || 'Untitled Entry'}
-                            </p>
-                            <p className="text-xs text-slate-500">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {entry.journal_type?.toLowerCase() || 'general'}
+                              </Badge>
+                              <p className="text-sm font-medium text-white truncate">
+                                {entry.title || `${entry.journal_type} Journal`}
+                              </p>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">
                               {format(new Date(entry.date), 'MMM d, yyyy')}
                             </p>
                           </div>
