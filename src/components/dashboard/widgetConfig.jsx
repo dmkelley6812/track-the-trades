@@ -101,7 +101,7 @@ export const WIDGET_CONFIG = {
     label: 'Recent Trades',
     category: 'List',
     allowedSizes: [WIDGET_SIZES.MEDIUM, WIDGET_SIZES.LARGE],
-    defaultSize: WIDGET_SIZES.MEDIUM,
+    defaultSize: WIDGET_SIZES.LARGE,
   },
   [WIDGET_TYPES.TRADE_CALENDAR]: {
     label: 'Trade Calendar',
@@ -141,15 +141,35 @@ export const DEFAULT_LAYOUT = [
   { id: '9', type: WIDGET_TYPES.TRADE_CALENDAR, size: WIDGET_SIZES.LARGE, visible: true },
 ];
 
-export function getWidgetSizeClass(size) {
+export function getWidgetSizeClass(size, widgetType) {
+  // Special handling for specific widget types
+  if (widgetType === WIDGET_TYPES.RECENT_TRADES) {
+    return size === WIDGET_SIZES.LARGE ? 'col-span-2 row-span-4' : 'col-span-2 row-span-3';
+  }
+  if (widgetType === WIDGET_TYPES.TRADE_CALENDAR) {
+    return 'col-span-4 row-span-4';
+  }
+  if (widgetType === WIDGET_TYPES.PNL_CHART) {
+    return 'col-span-4 row-span-3';
+  }
+  if (widgetType === WIDGET_TYPES.WIN_RATE_GAUGE) {
+    return 'col-span-1 row-span-2';
+  }
+  if (widgetType === WIDGET_TYPES.PNL_BY_DAY_OF_WEEK || 
+      widgetType === WIDGET_TYPES.TRADE_COUNT_BY_DAY ||
+      widgetType === WIDGET_TYPES.PNL_BY_STRATEGY) {
+    return size === WIDGET_SIZES.LARGE ? 'col-span-2 row-span-2' : 'col-span-2 row-span-2';
+  }
+
+  // Default size mappings for KPI widgets
   switch (size) {
     case WIDGET_SIZES.SMALL:
-      return 'col-span-1';
+      return 'col-span-1 row-span-1'; // Square 1/4 width
     case WIDGET_SIZES.MEDIUM:
-      return 'col-span-2';
+      return 'col-span-1 row-span-2'; // Tall rectangle 1/4 wide
     case WIDGET_SIZES.LARGE:
-      return 'col-span-4';
+      return 'col-span-2 row-span-2'; // Large square 2/4 x 2/4
     default:
-      return 'col-span-2';
+      return 'col-span-1 row-span-1';
   }
 }

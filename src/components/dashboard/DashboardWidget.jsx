@@ -25,8 +25,8 @@ export default function DashboardWidget({
 
   return (
     <div className={cn(
-      getWidgetSizeClass(widget.size),
-      "relative group transition-opacity",
+      getWidgetSizeClass(widget.size, widget.type),
+      "relative group transition-opacity h-full",
       isDragging && "opacity-50"
     )}>
       <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
