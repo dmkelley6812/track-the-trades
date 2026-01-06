@@ -154,7 +154,6 @@ export default function JournalFormEnhanced({ journal, onSubmit, onCancel, isLoa
       ? current.filter(id => id !== tradeId)
       : [...current, tradeId];
     handleChange('linked_trade_ids', updated);
-    setShowTradeSelector(false);
   };
 
   const linkAllTradesForDate = async () => {
@@ -344,38 +343,73 @@ export default function JournalFormEnhanced({ journal, onSubmit, onCancel, isLoa
                     onClick={() => setShowTradeSelector(false)}
                   />
                   <div className="absolute z-20 w-full mt-1">
-                    <ScrollArea className="h-48 border border-slate-700 rounded-lg bg-slate-900 shadow-xl">
-                      <div className="p-2 space-y-1">
-                        {filteredTrades.map(trade => (
-                          <button
-                            key={trade.id}
-                            type="button"
-                            onClick={() => toggleTrade(trade.id)}
-                            className={cn(
-                              "w-full flex items-center justify-between p-2 rounded-lg transition-colors text-left",
-                              formData.linked_trade_ids.includes(trade.id)
-                                ? "bg-emerald-500/20 border border-emerald-500/30"
-                                : "hover:bg-slate-800/50"
-                            )}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-white">{trade.symbol}</span>
-                              <span className="text-xs text-slate-400">
-                                {format(new Date(trade.entry_date), 'MMM d')}
-                              </span>
-                            </div>
-                            {trade.profit_loss !== null && (
-                              <span className={cn(
-                                "text-sm font-medium",
-                                trade.profit_loss >= 0 ? "text-emerald-400" : "text-red-400"
-                              )}>
-                                {trade.profit_loss >= 0 ? '+' : ''}${trade.profit_loss.toFixed(2)}
-                              </span>
-                            )}
-                          </button>
-                        ))}
+                    <div className="border border-slate-700 rounded-lg bg-slate-900 shadow-xl">
+                      <div className="flex items-center justify-between p-2 border-b border-slate-700">
+                        <span className="text-xs text-slate-400">Select trades to link</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowTradeSelector(false)}
+                          className="h-6 text-xs text-slate-400 hover:text-white"
+                        >
+                          <X className="w-3 h-3 mr-1" />
+                          Close
+                        </Button>
                       </div>
-                    </ScrollArea>
+                      <ScrollArea className="h-48">
+                        <div className="p-2 space-y-1">
+                          {filteredTrades.map(trade => {
+                            const entryTime = format(new Date(trade.entry_date), 'h:mm a');
+                            const exitTime = trade.exit_date ? format(new Date(trade.exit_date), 'h:mm a') : null;
+                            const pnl = trade.profit_loss !== null && trade.profit_loss !== undefined ? trade.profit_loss : null;
+                            
+                            return (
+                              <button
+                                key={trade.id}
+                                type="button"
+                                onClick={() => toggleTrade(trade.id)}
+                                className={cn(
+                                  "w-full flex items-center justify-between p-2 rounded-lg transition-colors text-left",
+                                  formData.linked_trade_ids.includes(trade.id)
+                                    ? "bg-emerald-500/20 border border-emerald-500/30"
+                                    : "hover:bg-slate-800/50"
+                                )}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-white">{trade.symbol}</span>
+                                    <span className="text-xs text-slate-500 capitalize">{trade.trade_type}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                                    <span>{format(new Date(trade.entry_date), 'MMM d')}</span>
+                                    <span>•</span>
+                                    <span>{entryTime}</span>
+                                    {exitTime && (
+                                      <>
+                                        <span>→</span>
+                                        <span>{exitTime}</span>
+                                      </>
+                                    )}
+                                    {!exitTime && <span className="text-amber-400">(Open)</span>}
+                                  </div>
+                                </div>
+                                {pnl !== null ? (
+                                  <span className={cn(
+                                    "text-sm font-medium ml-2",
+                                    pnl >= 0 ? "text-emerald-400" : "text-red-400"
+                                  )}>
+                                    {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-slate-500 ml-2">-</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </div>
                   </div>
                 </>
               )}
