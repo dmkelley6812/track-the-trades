@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Calendar, TrendingUp, TrendingDown, BarChart2, Edit2, Image as ImageIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const MOOD_ICONS = {
   confident: '😎',
@@ -11,10 +12,18 @@ const MOOD_ICONS = {
   frustrated: '😤'
 };
 
+const JOURNAL_TYPE_CONFIG = {
+  TRADE: { label: 'Trade', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+  DAY: { label: 'Daily', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+  GENERAL: { label: 'General', color: 'bg-slate-500/20 text-slate-300 border-slate-500/30' }
+};
+
 export default function JournalCard({ journal, onEdit, onClick }) {
   const isProfit = journal.daily_pnl > 0;
   const isLoss = journal.daily_pnl < 0;
   const coverImage = journal.images?.[0];
+  const journalType = journal.journal_type || 'GENERAL';
+  const typeConfig = JOURNAL_TYPE_CONFIG[journalType];
 
   return (
     <div 
@@ -34,19 +43,24 @@ export default function JournalCard({ journal, onEdit, onClick }) {
 
       <div className="p-5">
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="text-2xl">{MOOD_ICONS[journal.mood] || '📝'}</div>
-          <div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-slate-500" />
-              <span className="text-slate-400 text-sm">
-                {format(new Date(journal.date), 'EEEE, MMM d, yyyy')}
-              </span>
-            </div>
-            {journal.title && (
-              <h3 className="font-semibold text-white mt-1">{journal.title}</h3>
-            )}
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className={cn("text-xs", typeConfig.color)}>
+              {typeConfig.label}
+            </Badge>
+            <span className="text-slate-500 text-xs">•</span>
+            <span className="text-slate-400 text-xs">
+              {format(new Date(journal.date), 'MMM d, yyyy')}
+            </span>
           </div>
+          {journal.title && (
+            <h3 className="font-semibold text-white">{journal.title}</h3>
+          )}
+          {journal.linked_trade_ids?.length > 0 && (
+            <p className="text-xs text-slate-500 mt-1">
+              {journal.linked_trade_ids.length} linked trade{journal.linked_trade_ids.length > 1 ? 's' : ''}
+            </p>
+          )}
         </div>
         <Button
           variant="ghost"
