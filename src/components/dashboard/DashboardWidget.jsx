@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { MoreVertical, Trash2, Maximize2, Minimize2, Square } from 'lucide-react';
+import { MoreVertical, Trash2, Minimize2, Square, Maximize2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,25 +9,49 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { WIDGET_CONFIG, WIDGET_SIZES, getWidgetSizeClass } from './widgetConfig';
+import { WIDGET_CONFIG, WIDGET_SIZES } from './widgetConfig';
 
 export default function DashboardWidget({ 
   widget, 
   children, 
   onRemove, 
   onResize,
-  isDragging 
 }) {
   const config = WIDGET_CONFIG[widget.type];
   const canResize = config?.allowedSizes?.length > 1;
 
+  const getSizeIcon = (size) => {
+    switch (size) {
+      case WIDGET_SIZES.SMALL:
+        return <Minimize2 className="w-4 h-4 mr-2" />;
+      case WIDGET_SIZES.MEDIUM_TALL:
+        return <Square className="w-4 h-4 mr-2" />;
+      case WIDGET_SIZES.MEDIUM_SQUARE:
+        return <Square className="w-4 h-4 mr-2" />;
+      case WIDGET_SIZES.LARGE:
+        return <Maximize2 className="w-4 h-4 mr-2" />;
+      default:
+        return null;
+    }
+  };
+
+  const getSizeLabel = (size) => {
+    switch (size) {
+      case WIDGET_SIZES.SMALL:
+        return 'Small';
+      case WIDGET_SIZES.MEDIUM_TALL:
+        return 'Medium (Tall)';
+      case WIDGET_SIZES.MEDIUM_SQUARE:
+        return 'Medium (Square)';
+      case WIDGET_SIZES.LARGE:
+        return 'Large';
+      default:
+        return size;
+    }
+  };
+
   return (
-    <div className={cn(
-      getWidgetSizeClass(widget.size, widget.type),
-      "relative group transition-opacity h-full",
-      isDragging && "opacity-50"
-    )}>
+    <div className="relative group h-full">
       <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -54,10 +77,8 @@ export default function DashboardWidget({
                       className="text-white hover:bg-slate-700"
                       disabled={widget.size === size}
                     >
-                      {size === WIDGET_SIZES.SMALL && <Minimize2 className="w-4 h-4 mr-2" />}
-                      {size === WIDGET_SIZES.MEDIUM && <Square className="w-4 h-4 mr-2" />}
-                      {size === WIDGET_SIZES.LARGE && <Maximize2 className="w-4 h-4 mr-2" />}
-                      {size}
+                      {getSizeIcon(size)}
+                      {getSizeLabel(size)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuSubContent>

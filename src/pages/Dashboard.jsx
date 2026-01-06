@@ -3,7 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import { 
   Plus, 
   Upload, 
@@ -31,7 +33,9 @@ import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 import DashboardWidget from '@/components/dashboard/DashboardWidget';
 import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
-import { WIDGET_TYPES, DEFAULT_LAYOUT, WIDGET_CONFIG } from '@/components/dashboard/widgetConfig';
+import { WIDGET_TYPES, DEFAULT_LAYOUT, WIDGET_CONFIG, generateGridLayout, getWidgetDimensions, validateWidgetSize } from '@/components/dashboard/widgetConfig';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 // Import new widget components
 import AvgWinWidget from '@/components/dashboard/widgets/AvgWinWidget';
@@ -54,7 +58,6 @@ export default function Dashboard() {
   });
   const [customStartDate, setCustomStartDate] = useState(null);
   const [customEndDate, setCustomEndDate] = useState(null);
-  const [draggingId, setDraggingId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -193,31 +196,34 @@ export default function Dashboard() {
   };
 
   const handleResizeWidget = (widgetId, newSize) => {
+    const widget = layout.find(w => w.id === widgetId);
+    if (!widget) return;
+
+    const config = WIDGET_CONFIG[widget.type];
+    if (!config?.allowedSizes.includes(newSize)) {
+      toast.error(`This widget is only available in ${config.allowedSizes.join(', ')} size${config.allowedSizes.length > 1 ? 's' : ''}.`);
+      return;
+    }
+
     const newLayout = layout.map(w => w.id === widgetId ? { ...w, size: newSize } : w);
     updateUserMutation.mutate({ dashboard_layout: newLayout });
   };
 
-  const handleDragEnd = (result) => {
-    setDraggingId(null);
-    if (!result.destination) return;
-
-    const items = Array.from(visibleWidgets);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Reconstruct full layout with new order
-    const newLayout = layout.map(widget => {
-      if (!widget.visible) return widget;
-      const newIndex = items.findIndex(w => w.id === widget.id);
-      return { ...widget, order: newIndex };
+  const handleLayoutChange = (newGridLayout) => {
+    // Update positions in our layout based on grid changes
+    const updatedLayout = layout.map(widget => {
+      const gridItem = newGridLayout.find(g => g.i === widget.id);
+      if (gridItem) {
+        return {
+          ...widget,
+          x: gridItem.x,
+          y: gridItem.y,
+        };
+      }
+      return widget;
     });
 
-    // Sort by order and remove order property
-    const sortedLayout = newLayout
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-      .map(({ order, ...rest }) => rest);
-
-    updateUserMutation.mutate({ dashboard_layout: sortedLayout });
+    updateUserMutation.mutate({ dashboard_layout: updatedLayout });
   };
 
   const renderWidget = (widget) => {
@@ -447,39 +453,33 @@ export default function Dashboard() {
         </div>
 
         {/* Widgets Grid with Drag & Drop */}
-        <DragDropContext onDragEnd={handleDragEnd} onDragStart={(start) => setDraggingId(start.draggableId)}>
-          <Droppable droppableId="dashboard" direction="horizontal">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="grid grid-cols-4 auto-rows-[180px] gap-4"
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={{ lg: generateGridLayout(visibleWidgets) }}
+          breakpoints={{ lg: 1024, md: 768, sm: 640, xs: 0 }}
+          cols={{ lg: 4, md: 2, sm: 1, xs: 1 }}
+          rowHeight={150}
+          onLayoutChange={(newLayout) => handleLayoutChange(newLayout)}
+          isDraggable={true}
+          isResizable={false}
+          compactType="vertical"
+          preventCollision={false}
+          margin={[16, 16]}
+          containerPadding={[0, 0]}
+          draggableHandle=".drag-handle"
+        >
+          {visibleWidgets.map((widget) => (
+            <div key={widget.id} className="drag-handle cursor-move">
+              <DashboardWidget
+                widget={widget}
+                onRemove={handleRemoveWidget}
+                onResize={handleResizeWidget}
               >
-                {visibleWidgets.map((widget, index) => (
-                  <Draggable key={widget.id} draggableId={widget.id} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <DashboardWidget
-                          widget={widget}
-                          onRemove={handleRemoveWidget}
-                          onResize={handleResizeWidget}
-                          isDragging={snapshot.isDragging}
-                        >
-                          {renderWidget(widget)}
-                        </DashboardWidget>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+                {renderWidget(widget)}
+              </DashboardWidget>
+            </div>
+          ))}
+        </ResponsiveGridLayout>
       </div>
 
       {/* Dashboard Customizer */}
