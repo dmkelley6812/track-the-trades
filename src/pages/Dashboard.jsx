@@ -182,7 +182,7 @@ export default function Dashboard() {
     largestDrawdown,
   };
 
-  const handleLayoutChange = (newLayout) => {
+  const handleCustomizerLayoutChange = (newLayout) => {
     updateUserMutation.mutate({ dashboard_layout: newLayout });
   };
 
@@ -209,7 +209,7 @@ export default function Dashboard() {
     updateUserMutation.mutate({ dashboard_layout: newLayout });
   };
 
-  const handleLayoutChange = (newGridLayout) => {
+  const handleGridLayoutChange = (newGridLayout) => {
     // Update positions in our layout based on grid changes
     const updatedLayout = layout.map(widget => {
       const gridItem = newGridLayout.find(g => g.i === widget.id);
@@ -459,7 +459,7 @@ export default function Dashboard() {
           breakpoints={{ lg: 1024, md: 768, sm: 640, xs: 0 }}
           cols={{ lg: 4, md: 2, sm: 1, xs: 1 }}
           rowHeight={150}
-          onLayoutChange={(newLayout) => handleLayoutChange(newLayout)}
+          onLayoutChange={(newLayout) => handleGridLayoutChange(newLayout)}
           isDraggable={true}
           isResizable={false}
           compactType="vertical"
@@ -487,7 +487,7 @@ export default function Dashboard() {
         open={showCustomizer}
         onClose={() => setShowCustomizer(false)}
         layout={layout}
-        onLayoutChange={handleLayoutChange}
+        onLayoutChange={handleCustomizerLayoutChange}
         onReset={handleResetLayout}
       />
 
