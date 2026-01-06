@@ -98,13 +98,6 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         const quantity = parseFloat(quantityStr);
         const point_value = parseFloat(pointValueStr);
         
-        // Calculate gross P&L from points
-        const points = trade_type === 'long' 
-          ? (exit_price - entry_price) 
-          : (entry_price - exit_price);
-        const profit_loss_gross = points * point_value * quantity;
-        
-        console.log("Point value is: ", point_value, " for trade at: ", time)
         // Find commission entries (look for commission rows near this trade)
         let totalCommission = 0;
         
@@ -125,13 +118,7 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
           }
         }
         
-        // Use the realized P&L from CSV as net P&L (it already has commissions deducted)
-        const profit_loss = realizedPnL;
-        
-        const profit_loss_percent = entry_price > 0 && quantity > 0
-          ? (profit_loss_gross / (entry_price * point_value * quantity)) * 100
-          : 0;
-        
+        // Store raw trade data - P&L will be calculated dynamically on display
         trades.push({
           symbol,
           trade_type,
@@ -141,9 +128,6 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
           entry_date: new Date(time).toISOString(),
           exit_date: new Date(time).toISOString(),
           status: 'closed',
-          profit_loss,
-          profit_loss_gross,
-          profit_loss_percent,
           fees: totalCommission,
           point_value,
           instrument_type: point_value !== 1 ? 'futures' : 'stock',

@@ -59,8 +59,7 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const pnlCalc = calculatePnL();
-    
+    // Store raw trade data - P&L will be calculated dynamically on display
     const submitData = {
       ...formData,
       entry_price: parseFloat(formData.entry_price),
@@ -69,8 +68,6 @@ export default function TradeForm({ trade, onSubmit, onCancel, isLoading }) {
       fees: parseFloat(formData.fees) || 0,
       point_value: formData.point_value ? parseFloat(formData.point_value) : undefined,
       status: isOpen ? 'open' : 'closed',
-      profit_loss: pnlCalc?.pnl || null,
-      profit_loss_percent: pnlCalc?.pnlPercent || null,
       tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       source: 'manual'
     };
