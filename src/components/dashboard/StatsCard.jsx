@@ -9,15 +9,13 @@ export default function StatsCard({ title, value, subtitle, icon: Icon, trend, t
       "hover:border-slate-700/50 transition-all duration-200",
       className
     )}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          {Icon && (
-            <div className="p-1.5 rounded-lg bg-slate-800/50">
-              <Icon className="w-4 h-4 text-emerald-400" />
-            </div>
-          )}
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</p>
-        </div>
+      <div className="flex items-center justify-center gap-2 mb-3">
+        {Icon && (
+          <div className="p-1.5 rounded-lg bg-slate-800/50">
+            <Icon className="w-4 h-4 text-emerald-400" />
+          </div>
+        )}
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</p>
         {info && (
           <TooltipProvider>
             <Tooltip delayDuration={0}>
