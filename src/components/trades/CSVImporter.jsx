@@ -104,6 +104,7 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
           : (entry_price - exit_price);
         const profit_loss_gross = points * point_value * quantity;
         
+        console.log("Point value is: ", point_value, " for trade at: ", time)
         // Find commission entries (look for commission rows near this trade)
         let totalCommission = 0;
         
