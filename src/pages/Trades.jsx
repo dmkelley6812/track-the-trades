@@ -21,6 +21,7 @@ import {
 import { format, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { cn } from "@/lib/utils";
 import TradeForm from '@/components/trades/TradeForm';
+import TradeFormEnhanced from '@/components/trades/TradeFormEnhanced';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
 import { Checkbox } from "@/components/ui/checkbox";
 import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
@@ -499,8 +500,8 @@ export default function Trades() {
 
       {/* Trade Form Sheet */}
       <Sheet open={showTradeForm} onOpenChange={setShowTradeForm}>
-        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-lg overflow-y-auto">
-          <TradeForm
+        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-4xl overflow-y-auto">
+          <TradeFormEnhanced
             trade={editingTrade}
             onSubmit={handleTradeSubmit}
             onCancel={() => {
