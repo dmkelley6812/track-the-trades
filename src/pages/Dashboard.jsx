@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,62 @@ import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
 import { WIDGET_TYPES, DEFAULT_LAYOUT, WIDGET_CONFIG, generateGridLayout, getWidgetDimensions, validateWidgetSize } from '@/components/dashboard/widgetConfig';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
+// Widget Grid Component with dynamic sizing
+function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, renderWidget }) {
+  const [containerWidth, setContainerWidth] = useState(0);
+  
+  // Memoize grid layout to prevent regeneration
+  const gridLayout = useMemo(() => {
+    return generateGridLayout(visibleWidgets);
+  }, [visibleWidgets]);
+
+  // Calculate dynamic rowHeight to make squares actually square
+  const rowHeight = useMemo(() => {
+    if (containerWidth === 0) return 150;
+    // 4 columns with 16px margin between = 3 gaps = 48px total margin
+    const availableWidth = containerWidth - 48;
+    const columnWidth = availableWidth / 4;
+    return Math.floor(columnWidth);
+  }, [containerWidth]);
+
+  return (
+    <div ref={(el) => {
+      if (el && containerWidth === 0) {
+        setContainerWidth(el.offsetWidth);
+      }
+    }}>
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={{ lg: gridLayout }}
+        breakpoints={{ lg: 0 }}
+        cols={{ lg: 4 }}
+        rowHeight={rowHeight}
+        width={containerWidth || 1200}
+        onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
+        isDraggable={true}
+        isResizable={false}
+        compactType="vertical"
+        preventCollision={true}
+        margin={[16, 16]}
+        containerPadding={[0, 0]}
+        draggableHandle=".drag-handle"
+      >
+        {visibleWidgets.map((widget) => (
+          <div key={widget.id} className="drag-handle cursor-move">
+            <DashboardWidget
+              widget={widget}
+              onRemove={onRemove}
+              onResize={onResize}
+            >
+              {renderWidget(widget)}
+            </DashboardWidget>
+          </div>
+        ))}
+      </ResponsiveGridLayout>
+    </div>
+  );
+}
 
 // Import new widget components
 import AvgWinWidget from '@/components/dashboard/widgets/AvgWinWidget';
@@ -111,8 +167,29 @@ export default function Dashboard() {
     }
   });
 
-  // Get layout from user or use default
-  const layout = user?.dashboard_layout || DEFAULT_LAYOUT;
+  // Validate and repair layout on load
+  const validatedLayout = useMemo(() => {
+    const userLayout = user?.dashboard_layout || DEFAULT_LAYOUT;
+    
+    return userLayout.map(widget => {
+      // Validate size
+      const validSize = validateWidgetSize(widget.type, widget.size);
+      
+      // Get correct dimensions
+      const dimensions = getWidgetDimensions(validSize);
+      
+      return {
+        ...widget,
+        size: validSize,
+        w: widget.w ?? dimensions.w,
+        h: widget.h ?? dimensions.h,
+        x: widget.x ?? 0,
+        y: widget.y ?? 0,
+      };
+    });
+  }, [user?.dashboard_layout]);
+
+  const layout = validatedLayout;
   const visibleWidgets = layout.filter(w => w.visible);
 
   // Filter trades by date range
@@ -210,7 +287,7 @@ export default function Dashboard() {
   };
 
   const handleGridLayoutChange = (newGridLayout) => {
-    // Update positions in our layout based on grid changes
+    // Update positions AND dimensions in our layout based on grid changes
     const updatedLayout = layout.map(widget => {
       const gridItem = newGridLayout.find(g => g.i === widget.id);
       if (gridItem) {
@@ -218,6 +295,8 @@ export default function Dashboard() {
           ...widget,
           x: gridItem.x,
           y: gridItem.y,
+          w: gridItem.w,
+          h: gridItem.h,
         };
       }
       return widget;
@@ -453,33 +532,13 @@ export default function Dashboard() {
         </div>
 
         {/* Widgets Grid with Drag & Drop */}
-        <ResponsiveGridLayout
-          className="layout"
-          layouts={{ lg: generateGridLayout(visibleWidgets) }}
-          breakpoints={{ lg: 1024, md: 768, sm: 640, xs: 0 }}
-          cols={{ lg: 4, md: 2, sm: 1, xs: 1 }}
-          rowHeight={150}
-          onLayoutChange={(newLayout) => handleGridLayoutChange(newLayout)}
-          isDraggable={true}
-          isResizable={false}
-          compactType="vertical"
-          preventCollision={false}
-          margin={[16, 16]}
-          containerPadding={[0, 0]}
-          draggableHandle=".drag-handle"
-        >
-          {visibleWidgets.map((widget) => (
-            <div key={widget.id} className="drag-handle cursor-move">
-              <DashboardWidget
-                widget={widget}
-                onRemove={handleRemoveWidget}
-                onResize={handleResizeWidget}
-              >
-                {renderWidget(widget)}
-              </DashboardWidget>
-            </div>
-          ))}
-        </ResponsiveGridLayout>
+        <WidgetGrid
+          visibleWidgets={visibleWidgets}
+          onLayoutChange={handleGridLayoutChange}
+          onRemove={handleRemoveWidget}
+          onResize={handleResizeWidget}
+          renderWidget={renderWidget}
+        />
       </div>
 
       {/* Dashboard Customizer */}

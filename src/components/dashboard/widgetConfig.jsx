@@ -149,16 +149,22 @@ export function generateGridLayout(widgets) {
     .map(widget => {
       const validSize = validateWidgetSize(widget.type, widget.size);
       const dimensions = getWidgetDimensions(validSize);
+      
+      // Use stored w/h if available and valid, otherwise use dimensions from size
+      const w = (widget.w && widget.w === dimensions.w) ? widget.w : dimensions.w;
+      const h = (widget.h && widget.h === dimensions.h) ? widget.h : dimensions.h;
+      
       return {
         i: widget.id,
         x: widget.x ?? 0,
         y: widget.y ?? 0,
-        w: dimensions.w,
-        h: dimensions.h,
+        w,
+        h,
         minW: dimensions.w,
         maxW: dimensions.w,
         minH: dimensions.h,
         maxH: dimensions.h,
+        static: false, // Allow dragging
       };
     });
 }
