@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { RotateCcw, Plus } from 'lucide-react';
-import { WIDGET_CONFIG, WIDGET_SIZES, DEFAULT_LAYOUT } from './widgetConfig';
+import { WIDGET_CONFIG, DEFAULT_LAYOUT } from './widgetConfig';
 import { cn } from "@/lib/utils";
 
 export default function DashboardCustomizer({ open, onClose, layout, onLayoutChange, onReset }) {
@@ -19,11 +19,7 @@ export default function DashboardCustomizer({ open, onClose, layout, onLayoutCha
     );
   };
 
-  const handleSizeChange = (widgetId, newSize) => {
-    setLocalLayout(prev =>
-      prev.map(w => w.id === widgetId ? { ...w, size: newSize } : w)
-    );
-  };
+
 
   const handleRemove = (widgetId) => {
     setLocalLayout(prev =>
@@ -36,7 +32,8 @@ export default function DashboardCustomizer({ open, onClose, layout, onLayoutCha
     const newWidget = {
       id: `widget-${Date.now()}`,
       type: widgetType,
-      size: config.defaultSize,
+      w: config.defaultSize.w,
+      h: config.defaultSize.h,
       visible: true,
     };
     setLocalLayout(prev => [...prev, newWidget]);
@@ -106,28 +103,9 @@ export default function DashboardCustomizer({ open, onClose, layout, onLayoutCha
                         <div className="flex-1">
                           <Label className="text-white">{config.label}</Label>
                         </div>
-                        {config.allowedSizes.length > 1 && (
-                          <Select
-                            value={widget.size}
-                            onValueChange={(size) => handleSizeChange(widget.id, size)}
-                          >
-                            <SelectTrigger className="w-32 bg-slate-900 border-slate-700 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700">
-                              {config.allowedSizes.map((size) => (
-                                <SelectItem key={size} value={size} className="text-white">
-                                  {size}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {config.allowedSizes.length === 1 && (
-                          <Badge variant="outline" className="border-slate-600 text-slate-400">
-                            {widget.size}
-                          </Badge>
-                        )}
+                        <Badge variant="outline" className="border-slate-600 text-slate-400">
+                          {widget.w}×{widget.h}
+                        </Badge>
                       </div>
                     );
                   })}
