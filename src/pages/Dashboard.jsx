@@ -221,12 +221,15 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
           <StatsCard
             title="Total P&L"
-            value={`${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`}
+            value={
+              <span className={totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}>
+                ${totalPnL.toFixed(2)}
+              </span>
+            }
             icon={DollarSign}
-            className={totalPnL >= 0 ? "border-emerald-500/20" : "border-red-500/20"}
             info="Total Profit & Loss across all closed trades in the selected time period. This is your net gain or loss after commissions and fees."
           />
           <StatsCard
@@ -238,17 +241,23 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Profit Factor"
-            value={profitFactor.toFixed(2)}
+            value={
+              <span className={profitFactor >= 1.5 ? "text-emerald-400" : profitFactor >= 1 ? "text-white" : "text-red-400"}>
+                {profitFactor.toFixed(2)}
+              </span>
+            }
             icon={TrendingUp}
-            className={profitFactor >= 1.5 ? "border-emerald-500/20" : profitFactor >= 1 ? "border-slate-700" : "border-red-500/20"}
             info="Ratio of gross profit to gross loss. Calculated as: Total Winning $ ÷ Total Losing $. A value above 2.0 is excellent, above 1.5 is good, and below 1.0 means you're losing money."
           />
           <StatsCard
             title="Expectancy"
-            value={`${expectancy >= 0 ? '+' : ''}$${expectancy.toFixed(2)}`}
+            value={
+              <span className={expectancy >= 0 ? "text-emerald-400" : "text-red-400"}>
+                ${expectancy.toFixed(2)}
+              </span>
+            }
             subtitle="Per trade"
             icon={Calculator}
-            className={expectancy >= 0 ? "border-emerald-500/20" : "border-red-500/20"}
             info="Average amount you can expect to win or lose per trade. Calculated as: (Win Rate × Avg Win) - (Loss Rate × Avg Loss). Positive expectancy means your system is profitable long-term."
           />
           <StatsCard
