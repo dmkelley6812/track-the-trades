@@ -33,7 +33,7 @@ import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
 import DashboardCustomizer from '@/components/dashboard/DashboardCustomizer';
 import DashboardWidget from '@/components/dashboard/DashboardWidget';
 import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
-import { WIDGET_TYPES, DEFAULT_LAYOUT, WIDGET_CONFIG, generateGridLayout, getWidgetDimensions, validateWidgetSize } from '@/components/dashboard/widgetConfig';
+import { WIDGET_TYPES, DEFAULT_LAYOUT, WIDGET_CONFIG, generateGridLayout, validateWidgetDimensions } from '@/components/dashboard/widgetConfig';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -172,17 +172,13 @@ export default function Dashboard() {
     const userLayout = user?.dashboard_layout || DEFAULT_LAYOUT;
     
     return userLayout.map(widget => {
-      // Validate size
-      const validSize = validateWidgetSize(widget.type, widget.size);
-      
-      // Get correct dimensions
-      const dimensions = getWidgetDimensions(validSize);
+      const config = WIDGET_CONFIG[widget.type];
+      const defaultSize = config?.defaultSize || { w: 1, h: 1 };
       
       return {
         ...widget,
-        size: validSize,
-        w: widget.w ?? dimensions.w,
-        h: widget.h ?? dimensions.h,
+        w: widget.w ?? defaultSize.w,
+        h: widget.h ?? defaultSize.h,
         x: widget.x ?? 0,
         y: widget.y ?? 0,
       };
@@ -276,13 +272,10 @@ export default function Dashboard() {
     const widget = layout.find(w => w.id === widgetId);
     if (!widget) return;
 
-    const config = WIDGET_CONFIG[widget.type];
-    if (!config?.allowedSizes.includes(newSize)) {
-      toast.error(`This widget is only available in ${config.allowedSizes.join(', ')} size${config.allowedSizes.length > 1 ? 's' : ''}.`);
-      return;
-    }
-
-    const newLayout = layout.map(w => w.id === widgetId ? { ...w, size: newSize } : w);
+    const validatedSize = validateWidgetDimensions(widget.type, newSize);
+    const newLayout = layout.map(w => 
+      w.id === widgetId ? { ...w, w: validatedSize.w, h: validatedSize.h } : w
+    );
     updateUserMutation.mutate({ dashboard_layout: newLayout });
   };
 
