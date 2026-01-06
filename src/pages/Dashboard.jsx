@@ -24,6 +24,7 @@ import CSVImporter from '@/components/trades/CSVImporter';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
+import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
 
 export default function Dashboard() {
   const [showTradeForm, setShowTradeForm] = useState(false);
@@ -42,11 +43,14 @@ export default function Dashboard() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: trades = [], isLoading: tradesLoading } = useQuery({
+  const { data: rawTrades = [], isLoading: tradesLoading } = useQuery({
     queryKey: ['trades'],
     queryFn: () => base44.entities.Trade.filter({ created_by: user?.email }, '-entry_date'),
     enabled: !!user
   });
+
+  // Enrich trades with calculated P&L
+  const trades = enrichTradesWithPnL(rawTrades);
 
   const createTradeMutation = useMutation({
     mutationFn: (data) => base44.entities.Trade.create(data),

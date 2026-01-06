@@ -26,6 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
 import StatsCard from '@/components/dashboard/StatsCard';
 import ColumnCustomizer from '@/components/trades/ColumnCustomizer';
+import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,11 +118,14 @@ export default function Trades() {
     updateColumnsMutation.mutate(newColumns);
   };
 
-  const { data: trades = [], isLoading } = useQuery({
+  const { data: rawTrades = [], isLoading } = useQuery({
     queryKey: ['trades'],
     queryFn: () => base44.entities.Trade.filter({ created_by: user?.email }, '-entry_date'),
     enabled: !!user
   });
+
+  // Enrich trades with calculated P&L
+  const trades = enrichTradesWithPnL(rawTrades);
 
   const createTradeMutation = useMutation({
     mutationFn: (data) => base44.entities.Trade.create(data),

@@ -21,6 +21,7 @@ import { format, subDays, startOfWeek, startOfMonth, parseISO } from 'date-fns';
 import { Loader2, TrendingUp, TrendingDown, Clock, Target, Zap } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import StatsCard from '@/components/dashboard/StatsCard';
+import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
 
 const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
 
@@ -32,11 +33,14 @@ export default function Analytics() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: trades = [], isLoading } = useQuery({
+  const { data: rawTrades = [], isLoading } = useQuery({
     queryKey: ['trades'],
     queryFn: () => base44.entities.Trade.filter({ created_by: user?.email }),
     enabled: !!user
   });
+
+  // Enrich trades with calculated P&L
+  const trades = enrichTradesWithPnL(rawTrades);
 
   // Filter trades by time range
   const filteredTrades = trades.filter(t => {
