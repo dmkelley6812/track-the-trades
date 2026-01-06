@@ -78,7 +78,7 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         draggableHandle=".drag-handle"
       >
         {visibleWidgets.map((widget) => (
-          <div key={widget.id} className="drag-handle cursor-move">
+          <div key={widget.id} className="drag-handle cursor-move h-full">
             <DashboardWidget
               widget={widget}
               onRemove={onRemove}

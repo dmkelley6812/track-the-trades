@@ -5,8 +5,8 @@ import { Info } from "lucide-react";
 export default function StatsCard({ title, value, subtitle, icon: Icon, trend, trendUp, className, info }) {
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-xl border border-slate-800/50 bg-slate-900/50 p-4",
-      "hover:border-slate-700/50 transition-all duration-200",
+      "relative overflow-hidden rounded-xl border border-slate-800/50 bg-slate-900/50 p-4 h-full",
+      "hover:border-slate-700/50 transition-all duration-200 flex flex-col justify-between",
       className
     )}>
       <div className="flex items-center justify-between mb-3">
