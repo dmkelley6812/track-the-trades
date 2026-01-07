@@ -32,6 +32,11 @@ export default function StrategiesPage() {
     queryFn: () => base44.entities.Strategy.list()
   });
 
+  const { data: allTrades = [] } = useQuery({
+    queryKey: ['trades'],
+    queryFn: () => base44.entities.Trade.list()
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Strategy.create(data),
     onSuccess: () => {
@@ -217,6 +222,9 @@ export default function StrategiesPage() {
       {viewingStrategy && (
         <StrategyDetailView
           strategy={viewingStrategy}
+          trades={allTrades}
+          open={!!viewingStrategy}
+          onOpenChange={() => setViewingStrategy(null)}
           onClose={() => setViewingStrategy(null)}
           onEdit={(strategy) => {
             setViewingStrategy(null);
