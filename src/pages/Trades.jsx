@@ -329,7 +329,7 @@ export default function Trades() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteDialog(true)}
-                className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-400"
+                className="border-red-500/50 text-red-300 hover:bg-red-500/10 hover:text-red-200"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete {selectedTradeIds.length}
@@ -338,7 +338,7 @@ export default function Trades() {
             <Button
               variant="outline"
               onClick={() => setShowCSVImport(true)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              className="border-slate-700 text-white hover:bg-slate-800"
             >
               Import CSV
             </Button>

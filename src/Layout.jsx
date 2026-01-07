@@ -80,7 +80,7 @@ export default function Layout({ children, currentPageName }) {
                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
                     isActive 
                       ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                      : "text-slate-200 hover:text-white hover:bg-slate-800/50"
                   )}
                 >
                   <item.icon className={cn("w-5 h-5", isActive && "text-emerald-400")} />
@@ -108,7 +108,7 @@ export default function Layout({ children, currentPageName }) {
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full justify-start gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+              className="w-full justify-start gap-3 px-4 py-3 text-slate-200 hover:text-red-400 hover:bg-red-500/10"
             >
               <LogOut className="w-5 h-5" />
               Sign Out
@@ -156,7 +156,7 @@ export default function Layout({ children, currentPageName }) {
                           "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
                           isActive 
                             ? "bg-emerald-500/10 text-emerald-400" 
-                            : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                            : "text-slate-200 hover:text-white hover:bg-slate-800/50"
                         )}
                       >
                         <item.icon className="w-5 h-5" />
@@ -169,7 +169,7 @@ export default function Layout({ children, currentPageName }) {
                   <Button
                     variant="ghost"
                     onClick={handleLogout}
-                    className="w-full justify-start gap-3 text-slate-400 hover:text-red-400"
+                    className="w-full justify-start gap-3 text-slate-200 hover:text-red-400"
                   >
                     <LogOut className="w-5 h-5" />
                     Sign Out
