@@ -1,9 +1,12 @@
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, AlertCircle, CheckCircle, X, Loader2 } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, X, Loader2, Edit2, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { base44 } from '@/api/base44Client';
+import { format } from 'date-fns';
+import { enrichTradesWithPnL } from '@/components/common/tradeCalculations';
 
 const PLATFORM_CONFIGS = {
   tradingview_balance: {
@@ -28,6 +31,7 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
   const [errors, setErrors] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [importedTrades, setImportedTrades] = useState(null);
   const fileInputRef = useRef(null);
 
   const parseCSV = (text) => {
@@ -206,9 +210,13 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         return acc;
       }, { newTrades: [], duplicates: [] });
       
-      // Only import non-duplicate trades
+      // Only import non-duplicate trades and get their IDs
+      let createdTrades = [];
       if (newTrades.length > 0) {
-        await base44.entities.Trade.bulkCreate(newTrades);
+        const createResults = await Promise.all(
+          newTrades.map(trade => base44.entities.Trade.create(trade))
+        );
+        createdTrades = createResults;
       }
       
       await base44.entities.ImportLog.create({
@@ -227,9 +235,8 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         duplicates: duplicates.length
       });
 
-      setTimeout(() => {
-        onImportComplete?.();
-      }, 2000);
+      // Show imported trades for review/editing
+      setImportedTrades(createdTrades);
 
     } catch (err) {
       setImportResult({
@@ -249,6 +256,106 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     
     setIsProcessing(false);
   };
+
+  // If trades have been imported, show review screen
+  if (importedTrades) {
+    const enrichedTrades = enrichTradesWithPnL(importedTrades);
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Imported Trades Review</h2>
+            <p className="text-sm text-slate-400 mt-1">
+              {enrichedTrades.length} trades imported successfully. Click any trade to add details.
+            </p>
+          </div>
+          <Button type="button" variant="ghost" size="icon" onClick={onCancel}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center gap-3">
+          <CheckCircle className="w-6 h-6 text-emerald-400" />
+          <div>
+            <p className="font-medium text-emerald-400">Import Complete!</p>
+            <p className="text-sm text-emerald-300/70">
+              Review your trades below and click on any to add more details
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          {enrichedTrades.map((trade) => (
+            <button
+              key={trade.id}
+              onClick={() => {
+                onImportComplete?.(trade);
+              }}
+              className="w-full flex items-center justify-between p-4 bg-slate-800/30 rounded-xl hover:bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/30 transition-all text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center",
+                  trade.trade_type === 'long' ? "bg-emerald-500/20" : "bg-red-500/20"
+                )}>
+                  {trade.trade_type === 'long' ? (
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  ) : (
+                    <TrendingDown className="w-5 h-5 text-red-400" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">{trade.symbol}</span>
+                    <Badge variant="outline" className={cn(
+                      "text-xs capitalize",
+                      trade.trade_type === 'long' ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"
+                    )}>
+                      {trade.trade_type}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {format(new Date(trade.entry_date), 'MMM d, yyyy h:mm a')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className={cn(
+                    "font-bold text-lg",
+                    trade.profit_loss >= 0 ? "text-emerald-400" : "text-red-400"
+                  )}>
+                    {trade.profit_loss >= 0 ? '+' : ''}${trade.profit_loss?.toFixed(2)}
+                  </p>
+                  {trade.profit_loss_percent !== undefined && (
+                    <p className={cn(
+                      "text-xs",
+                      trade.profit_loss >= 0 ? "text-emerald-400/70" : "text-red-400/70"
+                    )}>
+                      {trade.profit_loss_percent >= 0 ? '+' : ''}{trade.profit_loss_percent?.toFixed(2)}%
+                    </p>
+                  )}
+                </div>
+                <Edit2 className="w-5 h-5 text-slate-500" />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-3 pt-4 border-t border-slate-800">
+          <Button
+            onClick={() => {
+              onImportComplete?.();
+            }}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            Done
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
