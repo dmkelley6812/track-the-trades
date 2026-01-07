@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +12,11 @@ import { cn } from "@/lib/utils";
 
 export default function DashboardCustomizer({ open, onClose, layout, onLayoutChange, onReset }) {
   const [localLayout, setLocalLayout] = useState(layout);
+  
+  // Sync local state when layout prop changes
+  useEffect(() => {
+    setLocalLayout(layout);
+  }, [layout]);
 
   const handleToggle = (widgetId) => {
     setLocalLayout(prev =>

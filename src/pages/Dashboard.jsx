@@ -310,10 +310,18 @@ export default function Dashboard() {
         if (w.parentId === widgetId) return { ...w, parentId: null, visible: true };
         return w;
       });
-      updateUserMutation.mutate({ dashboard_layout: newLayout });
+      updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        }
+      });
     } else {
       const newLayout = layout.map(w => w.id === widgetId ? { ...w, visible: false } : w);
-      updateUserMutation.mutate({ dashboard_layout: newLayout });
+      updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        }
+      });
     }
   };
 
@@ -325,7 +333,11 @@ export default function Dashboard() {
     const newLayout = layout.map(w => 
       w.id === widgetId ? { ...w, w: validatedSize.w, h: validatedSize.h } : w
     );
-    updateUserMutation.mutate({ dashboard_layout: newLayout });
+    updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      }
+    });
   };
 
   const handleGridLayoutChange = (newGridLayout) => {
@@ -344,8 +356,11 @@ export default function Dashboard() {
       return widget;
     });
 
-    // Debounce or only save on drag end - react-grid-layout calls this frequently
-    updateUserMutation.mutate({ dashboard_layout: updatedLayout });
+    updateUserMutation.mutate({ dashboard_layout: updatedLayout }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      }
+    });
   };
   
   const handleAddToStacked = (stackedId, widgetType) => {
@@ -389,7 +404,11 @@ export default function Dashboard() {
       return w;
     });
     
-    updateUserMutation.mutate({ dashboard_layout: newLayout });
+    updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      }
+    });
   };
 
   const renderWidget = (widget, layoutMode = 'default') => {
