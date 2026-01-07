@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function RecentTrades({ trades, onTradeClick }) {
+export default function RecentTrades({ trades, onTradeClick, compact = false }) {
   const [page, setPage] = useState(0);
-  const tradesPerPage = 8;
+  const tradesPerPage = compact ? 4 : 8;
   
   const sortedTrades = [...trades].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
   const totalPages = Math.ceil(sortedTrades.length / tradesPerPage);
@@ -28,6 +28,42 @@ export default function RecentTrades({ trades, onTradeClick }) {
         {recentTrades.map((trade) => {
           const isWin = trade.profit_loss > 0;
           const isLoss = trade.profit_loss < 0;
+          
+          if (compact) {
+            return (
+              <div
+                key={trade.id}
+                onClick={() => onTradeClick?.(trade)}
+                className={cn(
+                  "flex items-center justify-between p-2 rounded-lg",
+                  "bg-slate-800/30 hover:bg-slate-800/50 border border-slate-800/50",
+                  "cursor-pointer transition-all duration-200"
+                )}
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="font-semibold text-white text-sm truncate">{trade.symbol}</span>
+                  <span className={cn(
+                    "text-xs",
+                    trade.trade_type === 'long' ? "text-emerald-400" : "text-red-400"
+                  )}>
+                    {trade.trade_type === 'long' ? '↑' : '↓'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  {trade.status === 'closed' && trade.profit_loss !== undefined ? (
+                    <p className={cn(
+                      "font-bold text-sm",
+                      isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
+                    )}>
+                      {isWin ? '+' : ''}{trade.profit_loss?.toFixed(0)}
+                    </p>
+                  ) : (
+                    <p className="text-slate-500 text-xs">Open</p>
+                  )}
+                </div>
+              </div>
+            );
+          }
           
           return (
             <div
@@ -102,29 +138,32 @@ export default function RecentTrades({ trades, onTradeClick }) {
       </div>
       
       {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4 border-t border-slate-800/50 mt-4">
+        <div className={cn(
+          "flex items-center justify-between pt-3 border-t border-slate-800/50 mt-2",
+          compact && "pt-2 mt-1"
+        )}>
           <Button
             variant="ghost"
-            size="sm"
+            size={compact ? "icon" : "sm"}
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
             className="text-slate-400 hover:text-white disabled:opacity-30"
           >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Previous
+            <ChevronLeft className={cn(compact ? "w-3 h-3" : "w-4 h-4 mr-1")} />
+            {!compact && "Previous"}
           </Button>
-          <span className="text-sm text-slate-500">
-            Page {page + 1} of {totalPages}
+          <span className={cn("text-slate-500", compact ? "text-xs" : "text-sm")}>
+            {page + 1}/{totalPages}
           </span>
           <Button
             variant="ghost"
-            size="sm"
+            size={compact ? "icon" : "sm"}
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={page === totalPages - 1}
             className="text-slate-400 hover:text-white disabled:opacity-30"
           >
-            Next
-            <ChevronRight className="w-4 h-4 ml-1" />
+            {!compact && "Next"}
+            <ChevronRight className={cn(compact ? "w-3 h-3" : "w-4 h-4 ml-1")} />
           </Button>
         </div>
       )}

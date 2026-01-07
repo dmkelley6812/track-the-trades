@@ -343,11 +343,12 @@ export default function Dashboard() {
           />
         );
       case WIDGET_TYPES.WIN_RATE:
+        const isCompact = widget.w === 1 && widget.h === 1;
         return (
           <StatsCard
             title="Win Rate"
             value={`${stats.winRate.toFixed(1)}%`}
-            subtitle={`${stats.wins}W / ${stats.losses}L`}
+            subtitle={isCompact ? undefined : `${stats.wins}W / ${stats.losses}L`}
             icon={Target}
             info="Percentage of winning trades out of total trades"
           />
@@ -409,22 +410,33 @@ export default function Dashboard() {
           </div>
         );
       case WIDGET_TYPES.WIN_RATE_GAUGE:
+        const gaugeSize = widget.w === 1 ? 'small' : 'normal';
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex items-center justify-center">
-            <WinRateGauge winRate={stats.winRate} wins={stats.wins} losses={stats.losses} />
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-3 h-full flex items-center justify-center">
+            <WinRateGauge 
+              winRate={stats.winRate} 
+              wins={stats.wins} 
+              losses={stats.losses}
+              size={gaugeSize}
+            />
           </div>
         );
       case WIDGET_TYPES.RECENT_TRADES:
+        const tradesCompact = widget.w < 2 || widget.h < 2;
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
-            <h2 className="text-lg font-semibold mb-4">All Trades</h2>
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-3 h-full flex flex-col">
+            {!tradesCompact && <h2 className="text-lg font-semibold mb-4">All Trades</h2>}
             {tradesLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
               </div>
             ) : (
               <div className="flex-1 min-h-0">
-                <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
+                <RecentTrades 
+                  trades={filteredTrades} 
+                  onTradeClick={setSelectedTrade}
+                  compact={tradesCompact}
+                />
               </div>
             )}
           </div>

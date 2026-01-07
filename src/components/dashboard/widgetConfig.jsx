@@ -21,8 +21,9 @@ export const WIDGET_TYPES = {
 // Widget dimension constraints
 export const WIDGET_CONSTRAINTS = {
   KPI: { minW: 1, maxW: 2, minH: 1, maxH: 2, stackable: true },
-  CHART: { minW: 2, maxW: 4, minH: 2, maxH: 4, stackable: false },
-  LIST: { minW: 2, maxW: 4, minH: 3, maxH: 4, stackable: false },
+  CHART: { minW: 1, maxW: 4, minH: 1, maxH: 4, stackable: false },
+  LIST: { minW: 1, maxW: 4, minH: 1, maxH: 4, stackable: false },
+  CALENDAR: { minW: 2, maxW: 4, minH: 2, maxH: 4, stackable: false },
 };
 
 export const WIDGET_CONFIG = {
@@ -108,7 +109,7 @@ export const WIDGET_CONFIG = {
     label: 'Trade Calendar',
     category: 'Chart',
     defaultSize: { w: 4, h: 4 },
-    constraints: WIDGET_CONSTRAINTS.LIST,
+    constraints: WIDGET_CONSTRAINTS.CALENDAR,
   },
   [WIDGET_TYPES.PNL_BY_DAY_OF_WEEK]: {
     label: 'P&L by Day of Week',
