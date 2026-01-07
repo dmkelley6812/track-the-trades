@@ -342,40 +342,68 @@ export default function Dashboard() {
     updateUserMutation.mutate({ dashboard_layout: updatedLayout });
   };
   
-  const handleAddToStack = (stackedId, widgetType) => {
+  const handleDropOnStacked = (stackedId, draggedWidget) => {
+    console.log('handleDropOnStacked called', { stackedId, draggedWidget });
+    
+    const stackedWidget = layout.find(w => w.id === stackedId);
+    if (!stackedWidget) {
+      console.log('Stacked widget not found');
+      return;
+    }
+    
     const children = layout.filter(w => w.parentId === stackedId);
     if (children.length >= 4) {
-      toast.error('Stack is full (max 4 widgets)');
+      console.log('Stack is full');
       return;
     }
     
-    const config = WIDGET_CONFIG[widgetType];
+    const config = WIDGET_CONFIG[draggedWidget.type];
     if (!config?.stackable) {
-      toast.error('This widget cannot be stacked');
+      console.log('Widget not stackable');
       return;
     }
     
-    // Create new widget instance
-    const newWidget = {
-      id: `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: widgetType,
-      w: config.defaultSize.w,
-      h: config.defaultSize.h,
-      visible: true,
-      parentId: stackedId,
-      stackOrder: children.length,
-    };
+    console.log('Adding widget to stack');
     
-    const newLayout = [...layout, newWidget];
+    // Check if dragged from another stacked container
+    const newLayout = layout.map(w => {
+      if (w.id === draggedWidget.id) {
+        return { ...w, parentId: stackedId, visible: true };
+      }
+      return w;
+    });
+    
     updateUserMutation.mutate({ dashboard_layout: newLayout });
     toast.success('Widget added to stack');
   };
   
   const handleRemoveFromStacked = (stackedId, childId) => {
-    // Remove the widget entirely from layout instead of returning to root
-    const newLayout = layout.filter(w => w.id !== childId);
+    const newLayout = layout.map(w => {
+      if (w.id === childId) {
+        return { ...w, parentId: null, visible: true };
+      }
+      return w;
+    });
+    
     updateUserMutation.mutate({ dashboard_layout: newLayout });
-    toast.success('Widget removed from stack');
+  };
+  
+  const handleReorderChildren = (stackedId, fromIndex, toIndex) => {
+    const children = layout.filter(w => w.parentId === stackedId);
+    const reordered = [...children];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    
+    // Update order field for persistence
+    const newLayout = layout.map(w => {
+      const newIndex = reordered.findIndex(child => child.id === w.id);
+      if (newIndex >= 0) {
+        return { ...w, stackOrder: newIndex };
+      }
+      return w;
+    });
+    
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
   };
 
   const renderWidget = (widget, layoutMode = 'default') => {
@@ -439,26 +467,14 @@ export default function Dashboard() {
         const children = layout
           .filter(w => w.parentId === widget.id)
           .sort((a, b) => (a.stackOrder || 0) - (b.stackOrder || 0));
-        
-        // Get available stackable widgets that aren't already visible
-        const availableStackable = Object.entries(WIDGET_CONFIG).filter(
-          ([type, config]) => {
-            if (!config.stackable) return false;
-            // Allow if not in root layout or already in this stack
-            const existingWidget = layout.find(w => w.type === type && w.visible && !w.parentId);
-            const inThisStack = children.find(c => c.type === type);
-            return !existingWidget && !inThisStack;
-          }
-        );
-        
         return (
           <StackedWidget
             widget={widget}
             children={children}
             renderWidget={renderWidget}
-            onAddWidget={handleAddToStack}
+            onDrop={handleDropOnStacked}
             onRemoveChild={handleRemoveFromStacked}
-            availableWidgets={availableStackable}
+            onReorderChildren={handleReorderChildren}
           />
         );
       case WIDGET_TYPES.TOTAL_TRADES:
