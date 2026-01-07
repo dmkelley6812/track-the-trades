@@ -23,7 +23,7 @@ export default function StatsCard({ title, value, subtitle, icon: Icon, trend, t
   return (
     <div className={cn(
       "relative overflow-hidden rounded-xl border border-slate-800/50 bg-slate-900/50 p-4 h-full",
-      "hover:border-slate-700/50 transition-all duration-200 flex flex-col justify-between",
+      "hover:border-slate-700/50 transition-all duration-200 flex flex-col justify-center",
       className
     )}>
       <div className="flex items-center justify-between mb-3">
@@ -50,7 +50,7 @@ export default function StatsCard({ title, value, subtitle, icon: Icon, trend, t
           <div className="w-[22px]" />
         )}
       </div>
-      
+
       <div className="space-y-1 text-center">
         <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
         {subtitle && (
