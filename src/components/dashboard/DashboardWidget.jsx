@@ -35,24 +35,14 @@ export default function DashboardWidget({
   }
 
   return (
-    <div 
-      className="relative group h-full"
-      draggable={layoutMode === 'default'}
-      onDragStart={(e) => {
-        if (layoutMode === 'default') {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('application/json', JSON.stringify(widget));
-          e.dataTransfer.setData('text/plain', widget.id);
-        }
-      }}
-    >
-      {layoutMode === 'default' && (
-        <>
-          <div className="absolute top-2 left-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity widget-drag-handle cursor-move">
-            <div className="h-8 w-8 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              <GripVertical className="w-4 h-4 text-slate-400" />
-            </div>
-          </div>
+    <div className="relative group h-full">
+          {layoutMode === 'default' && (
+            <>
+              <div className="widget-drag-handle absolute top-2 left-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                <div className="h-8 w-8 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                  <GripVertical className="w-4 h-4 text-slate-400" />
+                </div>
+              </div>
           <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
           <DropdownMenuTrigger asChild>

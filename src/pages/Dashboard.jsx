@@ -68,9 +68,9 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         cols={{ lg: 4 }}
         rowHeight={rowHeight}
         width={containerWidth || 1200}
-        onLayoutChange={() => {}}
         onDragStop={(newLayout) => onLayoutChange(newLayout)}
         isDraggable={true}
+        useCSSTransforms={true}
         isResizable={false}
         compactType="vertical"
         preventCollision={true}
@@ -287,10 +287,18 @@ export default function Dashboard() {
   };
 
   const handleCustomizerLayoutChange = (newLayout) => {
+    // Optimistic update
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      dashboard_layout: newLayout
+    }));
+    
     updateUserMutation.mutate({ dashboard_layout: newLayout }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         toast.success('Dashboard layout saved');
+      },
+      onError: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       }
     });
   };
@@ -301,28 +309,30 @@ export default function Dashboard() {
 
   const handleRemoveWidget = (widgetId) => {
     const widget = layout.find(w => w.id === widgetId);
+    let newLayout;
     
     // If removing a stacked widget, restore children to root
     if (widget?.type === WIDGET_TYPES.STACKED) {
-      const children = layout.filter(w => w.parentId === widgetId);
-      const newLayout = layout.map(w => {
+      newLayout = layout.map(w => {
         if (w.id === widgetId) return { ...w, visible: false };
         if (w.parentId === widgetId) return { ...w, parentId: null, visible: true };
         return w;
       });
-      updateUserMutation.mutate({ dashboard_layout: newLayout }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        }
-      });
     } else {
-      const newLayout = layout.map(w => w.id === widgetId ? { ...w, visible: false } : w);
-      updateUserMutation.mutate({ dashboard_layout: newLayout }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        }
-      });
+      newLayout = layout.map(w => w.id === widgetId ? { ...w, visible: false } : w);
     }
+    
+    // Optimistic update
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      dashboard_layout: newLayout
+    }));
+    
+    updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+      onError: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      }
+    });
   };
 
   const handleResizeWidget = (widgetId, newSize) => {
@@ -333,8 +343,15 @@ export default function Dashboard() {
     const newLayout = layout.map(w => 
       w.id === widgetId ? { ...w, w: validatedSize.w, h: validatedSize.h } : w
     );
+    
+    // Optimistic update
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      dashboard_layout: newLayout
+    }));
+    
     updateUserMutation.mutate({ dashboard_layout: newLayout }, {
-      onSuccess: () => {
+      onError: () => {
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       }
     });
@@ -356,8 +373,14 @@ export default function Dashboard() {
       return widget;
     });
 
+    // Optimistic update
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      dashboard_layout: updatedLayout
+    }));
+    
     updateUserMutation.mutate({ dashboard_layout: updatedLayout }, {
-      onSuccess: () => {
+      onError: () => {
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       }
     });
@@ -389,8 +412,15 @@ export default function Dashboard() {
     };
     
     const newLayout = [...layout, newWidget];
+    
+    // Optimistic update
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      dashboard_layout: newLayout
+    }));
+    
     updateUserMutation.mutate({ dashboard_layout: newLayout }, {
-      onSuccess: () => {
+      onError: () => {
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       }
     });
@@ -404,8 +434,14 @@ export default function Dashboard() {
       return w;
     });
     
+    // Optimistic update
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      dashboard_layout: newLayout
+    }));
+    
     updateUserMutation.mutate({ dashboard_layout: newLayout }, {
-      onSuccess: () => {
+      onError: () => {
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       }
     });
