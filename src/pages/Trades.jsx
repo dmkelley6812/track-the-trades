@@ -397,7 +397,7 @@ export default function Trades() {
           </div>
         ) : (
           <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-w-full">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-800">

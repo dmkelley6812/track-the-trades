@@ -38,8 +38,8 @@ export default function ColumnCustomizer({ columns, onChange }) {
           <Settings2 className="w-4 h-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 bg-slate-900 border-slate-800 p-4" align="end">
-        <div className="space-y-4">
+      <PopoverContent className="w-80 bg-slate-900 border-slate-800 p-4 max-h-[80vh] overflow-hidden flex flex-col" align="end">
+        <div className="space-y-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-white">Customize Columns</h3>
             <Button
@@ -56,14 +56,15 @@ export default function ColumnCustomizer({ columns, onChange }) {
             Drag to reorder, click to show/hide
           </p>
 
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="columns">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-2"
-                >
+          <div className="overflow-y-auto flex-1 -mx-4 px-4">
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="columns">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-2"
+                  >
                   {columns.map((column, index) => (
                     <Draggable
                       key={column.id}
@@ -105,6 +106,7 @@ export default function ColumnCustomizer({ columns, onChange }) {
               )}
             </Droppable>
           </DragDropContext>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
