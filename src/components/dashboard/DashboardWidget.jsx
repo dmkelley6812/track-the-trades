@@ -34,8 +34,8 @@ export default function DashboardWidget({
   }
 
   return (
-    <div className="relative group h-full">
-      <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+    <div className="relative group h-full widget-drag-handle cursor-move">
+      <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

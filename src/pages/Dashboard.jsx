@@ -75,13 +75,13 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         preventCollision={true}
         margin={[16, 16]}
         containerPadding={[0, 0]}
-        draggableHandle=".drag-handle"
+        draggableHandle=".widget-drag-handle"
         droppingItem={{ i: '__dropping-elem__', w: 1, h: 1 }}
         onDrop={(layout, item, e) => {
           // Handle drop for stacking
           const draggedWidget = visibleWidgets.find(w => w.id === item.i);
           if (!draggedWidget) return;
-          
+
           // Find if dropped on another widget
           const targetWidget = visibleWidgets.find(w => {
             if (w.id === item.i) return false;
@@ -93,11 +93,11 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
             );
             return overlap;
           });
-          
+
           if (targetWidget) {
             const draggedConfig = WIDGET_CONFIG[draggedWidget.type];
             const targetConfig = WIDGET_CONFIG[targetWidget.type];
-            
+
             // Check if both are stackable
             if (draggedConfig?.constraints?.stackable && targetConfig?.constraints?.stackable) {
               // Stack them
@@ -107,7 +107,7 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         }}
       >
         {visibleWidgets.map((widget) => (
-          <div key={widget.id} className="drag-handle cursor-move h-full">
+          <div key={widget.id} className="h-full">
             <DashboardWidget
               widget={widget}
               onRemove={onRemove}
@@ -404,7 +404,7 @@ export default function Dashboard() {
         return (
           <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Cumulative P&L</h2>
-            <div className="flex-1">
+            <div className="flex-1 min-h-0">
               <PnLChart trades={filteredTrades} />
             </div>
           </div>
