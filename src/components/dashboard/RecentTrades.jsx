@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,27 @@ import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-reac
 
 export default function RecentTrades({ trades, onTradeClick, compact = false }) {
   const [page, setPage] = useState(0);
-  const tradesPerPage = compact ? 4 : 8;
+  const containerRef = useRef(null);
+  const [tradesPerPage, setTradesPerPage] = useState(compact ? 4 : 8);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const updateTradesPerPage = () => {
+      const containerHeight = containerRef.current?.clientHeight || 0;
+      const tradeItemHeight = compact ? 48 : 88;
+      const paginationHeight = 48;
+      const availableHeight = containerHeight - paginationHeight;
+      const calculated = Math.max(1, Math.floor(availableHeight / tradeItemHeight));
+      setTradesPerPage(calculated);
+    };
+
+    updateTradesPerPage();
+    const resizeObserver = new ResizeObserver(updateTradesPerPage);
+    resizeObserver.observe(containerRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, [compact]);
   
   const sortedTrades = [...trades].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
   const totalPages = Math.ceil(sortedTrades.length / tradesPerPage);
@@ -23,8 +43,8 @@ export default function RecentTrades({ trades, onTradeClick, compact = false }) 
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 space-y-2 overflow-auto">
+    <div ref={containerRef} className="flex flex-col h-full">
+      <div className="flex-1 space-y-2 overflow-hidden">
         {recentTrades.map((trade) => {
           const isWin = trade.profit_loss > 0;
           const isLoss = trade.profit_loss < 0;
