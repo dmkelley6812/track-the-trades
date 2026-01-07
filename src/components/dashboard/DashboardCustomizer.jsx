@@ -37,6 +37,7 @@ export default function DashboardCustomizer({ open, onClose, layout, onLayoutCha
       visible: true,
       x: 0,
       y: 0,
+      parentId: null,
     };
     setLocalLayout(prev => [...prev, newWidget]);
   };

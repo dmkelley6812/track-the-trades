@@ -68,7 +68,8 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         cols={{ lg: 4 }}
         rowHeight={rowHeight}
         width={containerWidth || 1200}
-        onLayoutChange={(newLayout) => onLayoutChange(newLayout)}
+        onLayoutChange={() => {}}
+        onDragStop={(newLayout) => onLayoutChange(newLayout)}
         isDraggable={true}
         isResizable={false}
         compactType="vertical"
@@ -164,7 +165,6 @@ export default function Dashboard() {
     mutationFn: (data) => base44.auth.updateMe(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      toast.success('Dashboard layout saved');
     },
     onError: () => {
       toast.error('Failed to save layout');
@@ -287,7 +287,12 @@ export default function Dashboard() {
   };
 
   const handleCustomizerLayoutChange = (newLayout) => {
-    updateUserMutation.mutate({ dashboard_layout: newLayout });
+    updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        toast.success('Dashboard layout saved');
+      }
+    });
   };
 
   const handleResetLayout = () => {
@@ -339,6 +344,7 @@ export default function Dashboard() {
       return widget;
     });
 
+    // Debounce or only save on drag end - react-grid-layout calls this frequently
     updateUserMutation.mutate({ dashboard_layout: updatedLayout });
   };
   
@@ -368,8 +374,11 @@ export default function Dashboard() {
     };
     
     const newLayout = [...layout, newWidget];
-    updateUserMutation.mutate({ dashboard_layout: newLayout });
-    toast.success('Widget added to stack');
+    updateUserMutation.mutate({ dashboard_layout: newLayout }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      }
+    });
   };
   
   const handleRemoveFromStacked = (stackedId, childId) => {
