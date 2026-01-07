@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -40,24 +40,24 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const DEFAULT_COLUMNS = [
-  { id: 'symbol', label: 'Symbol', visible: true },
-  { id: 'type', label: 'Type', visible: true },
-  { id: 'entry', label: 'Entry', visible: true },
-  { id: 'exit', label: 'Exit', visible: true },
-  { id: 'qty', label: 'Qty', visible: true },
-  { id: 'pnl', label: 'P&L', visible: true },
-  { id: 'pnl_percent', label: 'P&L %', visible: false },
-  { id: 'date', label: 'Date', visible: true },
-  { id: 'status', label: 'Status', visible: true },
-  { id: 'strategy', label: 'Strategy', visible: false },
-  { id: 'setup_type', label: 'Setup', visible: false },
-  { id: 'execution_rating', label: 'Execution', visible: false },
-  { id: 'plan_adherence', label: 'Plan Adherence', visible: false },
-  { id: 'emotion', label: 'Emotion', visible: false },
-  { id: 'stop_loss', label: 'Stop Loss', visible: false },
-  { id: 'take_profit', label: 'Take Profit', visible: false },
-  { id: 'linked_journals', label: 'Journals', visible: false },
-  { id: 'keywords', label: 'Keywords', visible: false },
+  { id: 'symbol', label: 'Symbol', visible: true, width: 180 },
+  { id: 'type', label: 'Type', visible: true, width: 100 },
+  { id: 'entry', label: 'Entry', visible: true, width: 100 },
+  { id: 'exit', label: 'Exit', visible: true, width: 100 },
+  { id: 'qty', label: 'Qty', visible: true, width: 80 },
+  { id: 'pnl', label: 'P&L', visible: true, width: 120 },
+  { id: 'pnl_percent', label: 'P&L %', visible: false, width: 100 },
+  { id: 'date', label: 'Date', visible: true, width: 150 },
+  { id: 'status', label: 'Status', visible: true, width: 100 },
+  { id: 'strategy', label: 'Strategy', visible: false, width: 150 },
+  { id: 'setup_type', label: 'Setup', visible: false, width: 150 },
+  { id: 'execution_rating', label: 'Execution', visible: false, width: 120 },
+  { id: 'plan_adherence', label: 'Plan Adherence', visible: false, width: 140 },
+  { id: 'emotion', label: 'Emotion', visible: false, width: 120 },
+  { id: 'stop_loss', label: 'Stop Loss', visible: false, width: 150 },
+  { id: 'take_profit', label: 'Take Profit', visible: false, width: 150 },
+  { id: 'linked_journals', label: 'Journals', visible: false, width: 100 },
+  { id: 'keywords', label: 'Keywords', visible: false, width: 200 },
 ];
 
 export default function Trades() {
@@ -101,6 +101,8 @@ export default function Trades() {
   const [dateFilter, setDateFilter] = useState(initialFilter.filter);
   const [customStartDate, setCustomStartDate] = useState(initialFilter.start);
   const [customEndDate, setCustomEndDate] = useState(initialFilter.end);
+  const [resizingColumn, setResizingColumn] = useState(null);
+  const tableRef = useRef(null);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -267,6 +269,43 @@ export default function Trades() {
     setCustomEndDate(end);
   };
 
+  const handleColumnResize = (columnId, newWidth) => {
+    const updated = columns.map(col =>
+      col.id === columnId ? { ...col, width: Math.max(60, newWidth) } : col
+    );
+    setColumns(updated);
+    updateColumnsMutation.mutate(updated);
+  };
+
+  const startResize = (columnId, e) => {
+    e.preventDefault();
+    setResizingColumn({ id: columnId, startX: e.clientX });
+  };
+
+  useEffect(() => {
+    if (!resizingColumn) return;
+
+    const handleMouseMove = (e) => {
+      const column = columns.find(c => c.id === resizingColumn.id);
+      const diff = e.clientX - resizingColumn.startX;
+      const newWidth = (column.width || 150) + diff;
+      handleColumnResize(resizingColumn.id, newWidth);
+      setResizingColumn({ ...resizingColumn, startX: e.clientX });
+    };
+
+    const handleMouseUp = () => {
+      setResizingColumn(null);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizingColumn, columns]);
+
   const isAllSelected = filteredTrades.length > 0 && selectedTradeIds.length === filteredTrades.length;
 
   return (
@@ -398,10 +437,10 @@ export default function Trades() {
         ) : (
           <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl overflow-hidden">
             <div className="overflow-x-auto max-w-full">
-              <table className="w-full">
+              <table ref={tableRef} className="w-full" style={{ tableLayout: 'fixed' }}>
                 <thead>
                   <tr className="border-b border-slate-800">
-                    <th className="px-4 py-4 w-12">
+                    <th className="px-4 py-4" style={{ width: '48px' }}>
                       <Checkbox
                         checked={isAllSelected}
                         onCheckedChange={handleSelectAll}
@@ -409,8 +448,16 @@ export default function Trades() {
                       />
                     </th>
                     {columns.filter(col => col.visible).map(col => (
-                      <th key={col.id} className="text-left px-6 py-4 text-sm font-medium text-slate-400">
+                      <th 
+                        key={col.id} 
+                        className="text-left px-6 py-4 text-sm font-medium text-slate-400 relative group"
+                        style={{ width: `${col.width || 150}px` }}
+                      >
                         {col.label}
+                        <div
+                          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-emerald-500/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onMouseDown={(e) => startResize(col.id, e)}
+                        />
                       </th>
                     ))}
                   </tr>
