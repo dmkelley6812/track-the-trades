@@ -25,80 +25,80 @@ export default function RecentTrades({ trades, onTradeClick }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 space-y-2 overflow-auto">
-      {recentTrades.map((trade) => {
-        const isWin = trade.profit_loss > 0;
-        const isLoss = trade.profit_loss < 0;
-        
-        return (
-          <div
-            key={trade.id}
-            onClick={() => onTradeClick?.(trade)}
-            className={cn(
-              "flex items-center justify-between p-4 rounded-xl",
-              "bg-slate-800/30 hover:bg-slate-800/50 border border-slate-800/50",
-              "cursor-pointer transition-all duration-200",
-              "group"
-            )}
-          >
-            <div className="flex items-center gap-4">
-              <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center",
-                trade.trade_type === 'long' ? "bg-emerald-500/20" : "bg-red-500/20"
-              )}>
-                {trade.trade_type === 'long' ? (
-                  <TrendingUp className="w-5 h-5 text-emerald-400" />
-                ) : (
-                  <TrendingDown className="w-5 h-5 text-red-400" />
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-white">{trade.symbol}</span>
-                  <Badge variant="outline" className={cn(
-                    "text-xs capitalize",
-                    trade.trade_type === 'long' ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"
-                  )}>
-                    {trade.trade_type}
-                  </Badge>
-                  {trade.status === 'open' && (
-                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/50 text-xs">
-                      Open
-                    </Badge>
+        {recentTrades.map((trade) => {
+          const isWin = trade.profit_loss > 0;
+          const isLoss = trade.profit_loss < 0;
+          
+          return (
+            <div
+              key={trade.id}
+              onClick={() => onTradeClick?.(trade)}
+              className={cn(
+                "flex items-center justify-between p-4 rounded-xl",
+                "bg-slate-800/30 hover:bg-slate-800/50 border border-slate-800/50",
+                "cursor-pointer transition-all duration-200",
+                "group"
+              )}
+            >
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center",
+                  trade.trade_type === 'long' ? "bg-emerald-500/20" : "bg-red-500/20"
+                )}>
+                  {trade.trade_type === 'long' ? (
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  ) : (
+                    <TrendingDown className="w-5 h-5 text-red-400" />
                   )}
                 </div>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  {format(new Date(trade.entry_date), 'MMM d, yyyy • h:mm a')}
-                </p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">{trade.symbol}</span>
+                    <Badge variant="outline" className={cn(
+                      "text-xs capitalize",
+                      trade.trade_type === 'long' ? "border-emerald-500/50 text-emerald-400" : "border-red-500/50 text-red-400"
+                    )}>
+                      {trade.trade_type}
+                    </Badge>
+                    {trade.status === 'open' && (
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/50 text-xs">
+                        Open
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {format(new Date(trade.entry_date), 'MMM d, yyyy • h:mm a')}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="text-right">
+                {trade.status === 'closed' && trade.profit_loss !== undefined ? (
+                  <>
+                    <p className={cn(
+                      "font-bold text-lg",
+                      isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
+                    )}>
+                      {isWin ? '+' : ''}{trade.profit_loss?.toFixed(2) || '0.00'}
+                    </p>
+                    {trade.profit_loss_percent !== undefined && (
+                      <p className={cn(
+                        "text-sm",
+                        isWin ? "text-emerald-400/70" : isLoss ? "text-red-400/70" : "text-slate-500"
+                      )}>
+                        {isWin ? '+' : ''}{trade.profit_loss_percent?.toFixed(2)}%
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-slate-500 text-sm">
+                    {trade.quantity} @ ${trade.entry_price}
+                  </p>
+                )}
               </div>
             </div>
-            
-            <div className="text-right">
-              {trade.status === 'closed' && trade.profit_loss !== undefined ? (
-                <>
-                  <p className={cn(
-                    "font-bold text-lg",
-                    isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
-                  )}>
-                    {isWin ? '+' : ''}{trade.profit_loss?.toFixed(2) || '0.00'}
-                  </p>
-                  {trade.profit_loss_percent !== undefined && (
-                    <p className={cn(
-                      "text-sm",
-                      isWin ? "text-emerald-400/70" : isLoss ? "text-red-400/70" : "text-slate-500"
-                    )}>
-                      {isWin ? '+' : ''}{trade.profit_loss_percent?.toFixed(2)}%
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-slate-500 text-sm">
-                  {trade.quantity} @ ${trade.entry_price}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
       
       {totalPages > 1 && (
