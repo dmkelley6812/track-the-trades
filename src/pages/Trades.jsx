@@ -46,8 +46,18 @@ const DEFAULT_COLUMNS = [
   { id: 'exit', label: 'Exit', visible: true },
   { id: 'qty', label: 'Qty', visible: true },
   { id: 'pnl', label: 'P&L', visible: true },
+  { id: 'pnl_percent', label: 'P&L %', visible: false },
   { id: 'date', label: 'Date', visible: true },
   { id: 'status', label: 'Status', visible: true },
+  { id: 'strategy', label: 'Strategy', visible: false },
+  { id: 'setup_type', label: 'Setup', visible: false },
+  { id: 'execution_rating', label: 'Execution', visible: false },
+  { id: 'plan_adherence', label: 'Plan Adherence', visible: false },
+  { id: 'emotion', label: 'Emotion', visible: false },
+  { id: 'stop_loss', label: 'Stop Loss', visible: false },
+  { id: 'take_profit', label: 'Take Profit', visible: false },
+  { id: 'linked_journals', label: 'Journals', visible: false },
+  { id: 'keywords', label: 'Keywords', visible: false },
 ];
 
 export default function Trades() {
@@ -122,6 +132,12 @@ export default function Trades() {
   const { data: rawTrades = [], isLoading } = useQuery({
     queryKey: ['trades'],
     queryFn: () => base44.entities.Trade.filter({ created_by: user?.email }, '-entry_date'),
+    enabled: !!user
+  });
+
+  const { data: strategies = [] } = useQuery({
+    queryKey: ['strategies'],
+    queryFn: () => base44.entities.Strategy.list(),
     enabled: !!user
   });
 
@@ -441,6 +457,17 @@ export default function Trades() {
                           ) : (
                             <span className="text-slate-500">-</span>
                           );
+                        case 'pnl_percent':
+                          return trade.status === 'closed' && trade.profit_loss_percent !== null ? (
+                            <span className={cn(
+                              "font-semibold",
+                              isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-slate-400"
+                            )}>
+                              {isWin ? '+' : ''}{trade.profit_loss_percent?.toFixed(2)}%
+                            </span>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
                         case 'date':
                           return (
                             <div className="flex items-center gap-1 text-slate-400 text-sm">
@@ -458,6 +485,90 @@ export default function Trades() {
                             )}>
                               {trade.status}
                             </Badge>
+                          );
+                        case 'strategy':
+                          const strategy = strategies.find(s => s.id === trade.strategy_id);
+                          return strategy ? (
+                            <span className="text-slate-300 text-sm">{strategy.name}</span>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'setup_type':
+                          return trade.setup_type ? (
+                            <span className="text-slate-300 text-sm">{trade.setup_type}</span>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'execution_rating':
+                          return trade.execution_rating ? (
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className={cn(
+                                  "text-xs",
+                                  i < trade.execution_rating ? "text-emerald-400" : "text-slate-600"
+                                )}>★</span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'plan_adherence':
+                          return trade.plan_adherence_rating ? (
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className={cn(
+                                  "text-xs",
+                                  i < trade.plan_adherence_rating ? "text-emerald-400" : "text-slate-600"
+                                )}>★</span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'emotion':
+                          return trade.emotion ? (
+                            <Badge variant="outline" className="text-xs capitalize border-slate-600 text-slate-400">
+                              {trade.emotion === 'other' ? trade.emotion_other : trade.emotion}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'stop_loss':
+                          return trade.stop_loss_outcome ? (
+                            <span className="text-slate-300 text-xs">{trade.stop_loss_outcome.replace(/_/g, ' ')}</span>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'take_profit':
+                          return trade.take_profit_outcome ? (
+                            <span className="text-slate-300 text-xs">{trade.take_profit_outcome.replace(/_/g, ' ')}</span>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'linked_journals':
+                          return trade.linked_journal_ids?.length > 0 ? (
+                            <Badge variant="outline" className="text-xs border-emerald-500/50 text-emerald-400">
+                              {trade.linked_journal_ids.length}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        case 'keywords':
+                          return trade.keywords?.length > 0 ? (
+                            <div className="flex gap-1 flex-wrap max-w-xs">
+                              {trade.keywords.slice(0, 2).map((kw, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs border-slate-600 text-slate-400">
+                                  {kw}
+                                </Badge>
+                              ))}
+                              {trade.keywords.length > 2 && (
+                                <Badge variant="outline" className="text-xs border-slate-600 text-slate-500">
+                                  +{trade.keywords.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500">-</span>
                           );
                         default:
                           return null;
