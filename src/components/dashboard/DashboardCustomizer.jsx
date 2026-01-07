@@ -30,11 +30,13 @@ export default function DashboardCustomizer({ open, onClose, layout, onLayoutCha
   const handleAddWidget = (widgetType) => {
     const config = WIDGET_CONFIG[widgetType];
     const newWidget = {
-      id: `widget-${Date.now()}`,
+      id: `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: widgetType,
       w: config.defaultSize.w,
       h: config.defaultSize.h,
       visible: true,
+      x: 0,
+      y: 0,
     };
     setLocalLayout(prev => [...prev, newWidget]);
   };
@@ -51,7 +53,11 @@ export default function DashboardCustomizer({ open, onClose, layout, onLayoutCha
 
   const visibleWidgets = localLayout.filter(w => w.visible);
   const availableToAdd = Object.entries(WIDGET_CONFIG).filter(
-    ([type]) => !localLayout.some(w => w.type === type && w.visible)
+    ([type]) => {
+      // Allow multiple stacked widgets
+      if (type === 'stacked') return true;
+      return !localLayout.some(w => w.type === type && w.visible);
+    }
   );
 
   const groupedByCategory = visibleWidgets.reduce((acc, widget) => {

@@ -1,7 +1,7 @@
 import { TrendingUp } from 'lucide-react';
 import StatsCard from '../StatsCard';
 
-export default function AvgWinWidget({ stats }) {
+export default function AvgWinWidget({ stats, layoutMode = 'default' }) {
   return (
     <StatsCard
       title="Average Win"

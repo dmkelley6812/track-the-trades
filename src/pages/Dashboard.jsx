@@ -131,6 +131,7 @@ import LargestDrawdownWidget from '@/components/dashboard/widgets/LargestDrawdow
 import PnLByDayOfWeekWidget from '@/components/dashboard/widgets/PnLByDayOfWeekWidget';
 import TradeCountByDayWidget from '@/components/dashboard/widgets/TradeCountByDayWidget';
 import PnLByStrategyWidget from '@/components/dashboard/widgets/PnLByStrategyWidget';
+import StackedWidget from '@/components/dashboard/StackedWidget';
 
 export default function Dashboard() {
   const [showTradeForm, setShowTradeForm] = useState(false);
@@ -215,7 +216,7 @@ export default function Dashboard() {
   }, [user?.dashboard_layout]);
 
   const layout = validatedLayout;
-  const visibleWidgets = layout.filter(w => w.visible);
+  const visibleWidgets = layout.filter(w => w.visible && !w.parentId);
 
   // Filter trades by date range
   const dateRange = getDateRange(dateFilter, customStartDate, customEndDate);
@@ -293,8 +294,21 @@ export default function Dashboard() {
   };
 
   const handleRemoveWidget = (widgetId) => {
-    const newLayout = layout.map(w => w.id === widgetId ? { ...w, visible: false } : w);
-    updateUserMutation.mutate({ dashboard_layout: newLayout });
+    const widget = layout.find(w => w.id === widgetId);
+    
+    // If removing a stacked widget, restore children to root
+    if (widget?.type === WIDGET_TYPES.STACKED) {
+      const children = layout.filter(w => w.parentId === widgetId);
+      const newLayout = layout.map(w => {
+        if (w.id === widgetId) return { ...w, visible: false };
+        if (w.parentId === widgetId) return { ...w, parentId: null, visible: true };
+        return w;
+      });
+      updateUserMutation.mutate({ dashboard_layout: newLayout });
+    } else {
+      const newLayout = layout.map(w => w.id === widgetId ? { ...w, visible: false } : w);
+      updateUserMutation.mutate({ dashboard_layout: newLayout });
+    }
   };
 
   const handleResizeWidget = (widgetId, newSize) => {
@@ -326,8 +340,58 @@ export default function Dashboard() {
 
     updateUserMutation.mutate({ dashboard_layout: updatedLayout });
   };
+  
+  const handleDropOnStacked = (stackedId, draggedWidget) => {
+    const stackedWidget = layout.find(w => w.id === stackedId);
+    if (!stackedWidget) return;
+    
+    const children = layout.filter(w => w.parentId === stackedId);
+    if (children.length >= 4) return;
+    
+    const config = WIDGET_CONFIG[draggedWidget.type];
+    if (!config?.stackable) return;
+    
+    // Check if dragged from another stacked container
+    const newLayout = layout.map(w => {
+      if (w.id === draggedWidget.id) {
+        return { ...w, parentId: stackedId, visible: true };
+      }
+      return w;
+    });
+    
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
+  };
+  
+  const handleRemoveFromStacked = (stackedId, childId) => {
+    const newLayout = layout.map(w => {
+      if (w.id === childId) {
+        return { ...w, parentId: null, visible: true };
+      }
+      return w;
+    });
+    
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
+  };
+  
+  const handleReorderChildren = (stackedId, fromIndex, toIndex) => {
+    const children = layout.filter(w => w.parentId === stackedId);
+    const reordered = [...children];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    
+    // Update order field for persistence
+    const newLayout = layout.map(w => {
+      const newIndex = reordered.findIndex(child => child.id === w.id);
+      if (newIndex >= 0) {
+        return { ...w, stackOrder: newIndex };
+      }
+      return w;
+    });
+    
+    updateUserMutation.mutate({ dashboard_layout: newLayout });
+  };
 
-  const renderWidget = (widget) => {
+  const renderWidget = (widget, layoutMode = 'default') => {
     switch (widget.type) {
       case WIDGET_TYPES.TOTAL_PNL:
         return (
@@ -340,6 +404,7 @@ export default function Dashboard() {
             }
             icon={DollarSign}
             info="Total Profit & Loss across all closed trades in the selected time period"
+            layoutMode={layoutMode}
           />
         );
       case WIDGET_TYPES.WIN_RATE:
@@ -351,6 +416,7 @@ export default function Dashboard() {
             subtitle={isCompact ? undefined : `${stats.wins}W / ${stats.losses}L`}
             icon={Target}
             info="Percentage of winning trades out of total trades"
+            layoutMode={layoutMode}
           />
         );
       case WIDGET_TYPES.PROFIT_FACTOR:
@@ -364,6 +430,7 @@ export default function Dashboard() {
             }
             icon={TrendingUp}
             info="Ratio of gross profit to gross loss"
+            layoutMode={layoutMode}
           />
         );
       case WIDGET_TYPES.EXPECTANCY:
@@ -378,6 +445,21 @@ export default function Dashboard() {
             subtitle="Per trade"
             icon={Calculator}
             info="Average amount you can expect to win or lose per trade"
+            layoutMode={layoutMode}
+          />
+        );
+      case WIDGET_TYPES.STACKED:
+        const children = layout
+          .filter(w => w.parentId === widget.id)
+          .sort((a, b) => (a.stackOrder || 0) - (b.stackOrder || 0));
+        return (
+          <StackedWidget
+            widget={widget}
+            children={children}
+            renderWidget={renderWidget}
+            onDrop={handleDropOnStacked}
+            onRemoveChild={handleRemoveFromStacked}
+            onReorderChildren={handleReorderChildren}
           />
         );
       case WIDGET_TYPES.TOTAL_TRADES:
@@ -391,7 +473,7 @@ export default function Dashboard() {
           />
         );
       case WIDGET_TYPES.AVG_WIN:
-        return <AvgWinWidget stats={stats} />;
+        return <AvgWinWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.AVG_LOSS:
         return <AvgLossWidget stats={stats} />;
       case WIDGET_TYPES.BEST_DAY:
