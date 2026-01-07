@@ -24,7 +24,7 @@ export default function DashboardWidget({
 
   return (
     <div className="relative group h-full">
-      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+      <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2" onClick={(e) => e.stopPropagation()}>
         <GridSizeSelector
           currentSize={{ w: widget.w, h: widget.h }}
           onSizeChange={handleSizeChange}

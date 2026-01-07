@@ -93,6 +93,35 @@ export default function RecentTrades({ trades, onTradeClick }) {
           </div>
         );
       })}
+      </div>
+      
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-slate-800/50 mt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="text-slate-400 hover:text-white disabled:opacity-30"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+          <span className="text-sm text-slate-500">
+            Page {page + 1} of {totalPages}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page === totalPages - 1}
+            className="text-slate-400 hover:text-white disabled:opacity-30"
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

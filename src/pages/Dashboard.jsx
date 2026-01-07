@@ -76,6 +76,35 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         margin={[16, 16]}
         containerPadding={[0, 0]}
         draggableHandle=".drag-handle"
+        droppingItem={{ i: '__dropping-elem__', w: 1, h: 1 }}
+        onDrop={(layout, item, e) => {
+          // Handle drop for stacking
+          const draggedWidget = visibleWidgets.find(w => w.id === item.i);
+          if (!draggedWidget) return;
+          
+          // Find if dropped on another widget
+          const targetWidget = visibleWidgets.find(w => {
+            if (w.id === item.i) return false;
+            const overlap = (
+              item.x < w.x + w.w &&
+              item.x + item.w > w.x &&
+              item.y < w.y + w.h &&
+              item.y + item.h > w.y
+            );
+            return overlap;
+          });
+          
+          if (targetWidget) {
+            const draggedConfig = WIDGET_CONFIG[draggedWidget.type];
+            const targetConfig = WIDGET_CONFIG[targetWidget.type];
+            
+            // Check if both are stackable
+            if (draggedConfig?.constraints?.stackable && targetConfig?.constraints?.stackable) {
+              // Stack them
+              onLayoutChange(layout);
+            }
+          }
+        }}
       >
         {visibleWidgets.map((widget) => (
           <div key={widget.id} className="drag-handle cursor-move h-full">
@@ -388,13 +417,13 @@ export default function Dashboard() {
       case WIDGET_TYPES.RECENT_TRADES:
         return (
           <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
-            <h2 className="text-lg font-semibold mb-4">Recent Trades</h2>
+            <h2 className="text-lg font-semibold mb-4">All Trades</h2>
             {tradesLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
               </div>
             ) : (
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 min-h-0">
                 <RecentTrades trades={filteredTrades} onTradeClick={setSelectedTrade} />
               </div>
             )}
