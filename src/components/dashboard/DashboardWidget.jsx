@@ -1,13 +1,15 @@
-import { MoreVertical, Trash2 } from 'lucide-react';
+import { MoreVertical, Trash2, Grid3x3 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { WIDGET_CONFIG } from './widgetConfig';
-import GridSizeSelector from './GridSizeSelector';
 
 export default function DashboardWidget({ 
   widget, 
@@ -18,19 +20,22 @@ export default function DashboardWidget({
   const config = WIDGET_CONFIG[widget.type];
   const constraints = config?.constraints;
 
-  const handleSizeChange = (newSize) => {
-    onResize(widget.id, newSize);
-  };
+  // Generate available sizes based on constraints
+  const availableSizes = [];
+  const minW = constraints?.minW || 1;
+  const maxW = constraints?.maxW || 4;
+  const minH = constraints?.minH || 1;
+  const maxH = constraints?.maxH || 4;
+
+  for (let h = minH; h <= maxH; h++) {
+    for (let w = minW; w <= maxW; w++) {
+      availableSizes.push({ w, h, label: `${w}×${h}` });
+    }
+  }
 
   return (
     <div className="relative group h-full">
-      <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2" onClick={(e) => e.stopPropagation()}>
-        <GridSizeSelector
-          currentSize={{ w: widget.w, h: widget.h }}
-          onSizeChange={handleSizeChange}
-          maxWidth={constraints?.maxW || 4}
-          maxHeight={constraints?.maxH || 4}
-        />
+      <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -42,12 +47,32 @@ export default function DashboardWidget({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-slate-800 border-slate-700" align="end">
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="text-white hover:bg-slate-700">
+                <Grid3x3 className="w-4 h-4 mr-2" />
+                Widget Size
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="bg-slate-800 border-slate-700">
+                {availableSizes.map((size) => (
+                  <DropdownMenuItem
+                    key={size.label}
+                    onClick={() => onResize(widget.id, { w: size.w, h: size.h })}
+                    className="text-white hover:bg-slate-700"
+                  >
+                    {size.label}
+                    {widget.w === size.w && widget.h === size.h && (
+                      <span className="ml-2 text-emerald-400">✓</span>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuItem
               onClick={() => onRemove(widget.id)}
               className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Remove
+              Remove Widget
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
