@@ -108,12 +108,20 @@ export default function Trades() {
   });
 
   const [columns, setColumns] = useState(() => {
-    return user?.trades_table_columns || DEFAULT_COLUMNS;
+    if (!user?.trades_table_columns) return DEFAULT_COLUMNS;
+    
+    // Merge saved columns with new DEFAULT_COLUMNS
+    const savedColumnIds = user.trades_table_columns.map(c => c.id);
+    const newColumns = DEFAULT_COLUMNS.filter(dc => !savedColumnIds.includes(dc.id));
+    return [...user.trades_table_columns, ...newColumns];
   });
 
   useEffect(() => {
     if (user?.trades_table_columns) {
-      setColumns(user.trades_table_columns);
+      // Merge saved columns with any new columns from DEFAULT_COLUMNS
+      const savedColumnIds = user.trades_table_columns.map(c => c.id);
+      const newColumns = DEFAULT_COLUMNS.filter(dc => !savedColumnIds.includes(dc.id));
+      setColumns([...user.trades_table_columns, ...newColumns]);
     }
   }, [user]);
 
