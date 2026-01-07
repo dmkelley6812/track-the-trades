@@ -445,10 +445,10 @@ export default function Dashboard() {
           .filter(w => w.parentId === widget.id)
           .sort((a, b) => (a.stackOrder || 0) - (b.stackOrder || 0));
         
-        // Get available stackable widgets (excluding ones already in any stack)
-        const childrenInAnyStack = layout.filter(w => w.parentId).map(w => w.type);
+        // Get available stackable widgets (excluding ones already in THIS specific stack)
+        const childrenInThisStack = children.map(w => w.type);
         const availableStackableWidgets = Object.entries(WIDGET_CONFIG).filter(
-          ([type, config]) => config.stackable && !childrenInAnyStack.includes(type)
+          ([type, config]) => config.stackable && !childrenInThisStack.includes(type)
         );
         
         return (
