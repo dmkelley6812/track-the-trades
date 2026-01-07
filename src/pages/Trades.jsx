@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import TradeForm from '@/components/trades/TradeForm';
 import TradeFormEnhanced from '@/components/trades/TradeFormEnhanced';
 import TradeDetailModal from '@/components/common/TradeDetailModal';
+import CSVImporter from '@/components/trades/CSVImporter';
 import { Checkbox } from "@/components/ui/checkbox";
 import DateFilter, { getDateRange } from '@/components/dashboard/DateFilter';
 import StatsCard from '@/components/dashboard/StatsCard';
@@ -93,6 +94,7 @@ export default function Trades() {
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [editingTrade, setEditingTrade] = useState(null);
   const [selectedTrade, setSelectedTrade] = useState(null);
+  const [showCSVImport, setShowCSVImport] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -333,6 +335,13 @@ export default function Trades() {
                 Delete {selectedTradeIds.length}
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => setShowCSVImport(true)}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              Import CSV
+            </Button>
             <Button
               onClick={() => {
                 setEditingTrade(null);
@@ -663,6 +672,27 @@ export default function Trades() {
           </div>
         )}
       </div>
+
+      {/* CSV Import Sheet */}
+      <Sheet open={showCSVImport} onOpenChange={setShowCSVImport}>
+        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-2xl overflow-y-auto">
+          <CSVImporter
+            onImportComplete={(trade) => {
+              queryClient.invalidateQueries({ queryKey: ['trades'] });
+              if (trade) {
+                // User clicked on a specific trade to edit
+                setEditingTrade(trade);
+                setShowCSVImport(false);
+                setShowTradeForm(true);
+              } else {
+                // User clicked "Done"
+                setShowCSVImport(false);
+              }
+            }}
+            onCancel={() => setShowCSVImport(false)}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* Trade Form Sheet */}
       <Sheet open={showTradeForm} onOpenChange={setShowTradeForm}>
