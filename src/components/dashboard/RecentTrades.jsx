@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function RecentTrades({ trades, onTradeClick }) {
-  const recentTrades = trades
-    .sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
-    .slice(0, 8);
+  const [page, setPage] = useState(0);
+  const tradesPerPage = 8;
+  
+  const sortedTrades = [...trades].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
+  const totalPages = Math.ceil(sortedTrades.length / tradesPerPage);
+  const recentTrades = sortedTrades.slice(page * tradesPerPage, (page + 1) * tradesPerPage);
 
-  if (recentTrades.length === 0) {
+  if (sortedTrades.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-slate-500">
         <p>No trades yet</p>
@@ -18,7 +23,8 @@ export default function RecentTrades({ trades, onTradeClick }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 space-y-2 overflow-auto">
       {recentTrades.map((trade) => {
         const isWin = trade.profit_loss > 0;
         const isLoss = trade.profit_loss < 0;
