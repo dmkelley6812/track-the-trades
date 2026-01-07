@@ -1,4 +1,4 @@
-import { MoreVertical, Trash2, Grid3x3 } from 'lucide-react';
+import { MoreVertical, Trash2, Grid3x3, GripVertical } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,7 +34,12 @@ export default function DashboardWidget({
   }
 
   return (
-    <div className="relative group h-full widget-drag-handle cursor-move">
+    <div className="relative group h-full">
+      <div className="absolute top-2 left-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity widget-drag-handle cursor-move">
+        <div className="h-8 w-8 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
+          <GripVertical className="w-4 h-4 text-slate-400" />
+        </div>
+      </div>
       <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
