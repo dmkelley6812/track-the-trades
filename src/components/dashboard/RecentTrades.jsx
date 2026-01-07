@@ -145,7 +145,10 @@ export default function RecentTrades({ trades, onTradeClick, compact = false }) 
           <Button
             variant="ghost"
             size={compact ? "icon" : "sm"}
-            onClick={() => setPage(p => Math.max(0, p - 1))}
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage(p => Math.max(0, p - 1));
+            }}
             disabled={page === 0}
             className="text-slate-400 hover:text-white disabled:opacity-30"
           >
@@ -158,7 +161,10 @@ export default function RecentTrades({ trades, onTradeClick, compact = false }) 
           <Button
             variant="ghost"
             size={compact ? "icon" : "sm"}
-            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage(p => Math.min(totalPages - 1, p + 1));
+            }}
             disabled={page === totalPages - 1}
             className="text-slate-400 hover:text-white disabled:opacity-30"
           >
