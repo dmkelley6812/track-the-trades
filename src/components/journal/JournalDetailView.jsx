@@ -87,7 +87,7 @@ const NEGATIVE_TRAIT_LABELS = {
   BROKE_RULES: 'Broke Rules'
 };
 
-export default function JournalDetailView({ journal, open, onClose, onEdit, onDelete }) {
+export default function JournalDetailView({ journal, open, onClose, onEdit, onDelete, onTradeClick }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -185,9 +185,10 @@ export default function JournalDetailView({ journal, open, onClose, onEdit, onDe
                     </p>
                     <div className="space-y-2">
                       {linkedTrades.map((trade) => (
-                        <div 
+                        <button 
                           key={trade.id}
-                          className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg"
+                          onClick={() => onTradeClick?.(trade)}
+                          className="w-full flex items-center justify-between p-3 bg-slate-900/50 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <div className={cn(
@@ -211,7 +212,7 @@ export default function JournalDetailView({ journal, open, onClose, onEdit, onDe
                               {trade.profit_loss >= 0 ? '+' : ''}${trade.profit_loss.toFixed(2)}
                             </span>
                           )}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>

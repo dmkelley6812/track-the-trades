@@ -14,11 +14,14 @@ import { toast } from 'sonner';
 import JournalFormEnhanced from '@/components/journal/JournalFormEnhanced';
 import JournalCard from '@/components/journal/JournalCard';
 import JournalDetailView from '@/components/journal/JournalDetailView';
+import TradeDetailModal from '@/components/common/TradeDetailModal';
+import TradeFormEnhanced from '@/components/trades/TradeFormEnhanced';
 
 export default function Journal() {
   const [showJournalForm, setShowJournalForm] = useState(false);
   const [editingJournal, setEditingJournal] = useState(null);
   const [selectedJournal, setSelectedJournal] = useState(null);
+  const [selectedTrade, setSelectedTrade] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -97,6 +100,44 @@ export default function Journal() {
 
   const handleViewJournal = (journal) => {
     setSelectedJournal(journal);
+  };
+
+  const [showTradeForm, setShowTradeForm] = useState(false);
+  const [editingTrade, setEditingTrade] = useState(null);
+
+  const updateTradeMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Trade.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      setShowTradeForm(false);
+      setEditingTrade(null);
+      setSelectedTrade(null);
+    }
+  });
+
+  const deleteTradeMutation = useMutation({
+    mutationFn: (id) => base44.entities.Trade.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      setSelectedTrade(null);
+      toast.success('Trade deleted');
+    }
+  });
+
+  const handleEditTrade = (trade) => {
+    setEditingTrade(trade);
+    setSelectedTrade(null);
+    setShowTradeForm(true);
+  };
+
+  const handleDeleteTrade = (trade) => {
+    if (confirm('Are you sure you want to delete this trade?')) {
+      deleteTradeMutation.mutate(trade.id);
+    }
+  };
+
+  const handleTradeClick = (trade) => {
+    setSelectedTrade(trade);
   };
 
   // Group journals by month
@@ -219,7 +260,36 @@ export default function Journal() {
         onClose={() => setSelectedJournal(null)}
         onEdit={handleEditJournal}
         onDelete={handleDeleteJournal}
+        onTradeClick={handleTradeClick}
       />
+
+      {/* Trade Detail Modal */}
+      <TradeDetailModal
+        trade={selectedTrade}
+        open={!!selectedTrade}
+        onClose={() => setSelectedTrade(null)}
+        onEdit={handleEditTrade}
+        onDelete={handleDeleteTrade}
+      />
+
+      {/* Trade Form Sheet */}
+      <Sheet open={showTradeForm} onOpenChange={setShowTradeForm}>
+        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-4xl overflow-y-auto">
+          <TradeFormEnhanced
+            trade={editingTrade}
+            onSubmit={(data) => {
+              if (editingTrade) {
+                updateTradeMutation.mutate({ id: editingTrade.id, data });
+              }
+            }}
+            onCancel={() => {
+              setShowTradeForm(false);
+              setEditingTrade(null);
+            }}
+            isLoading={updateTradeMutation.isPending}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
