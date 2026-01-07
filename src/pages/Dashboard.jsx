@@ -76,6 +76,7 @@ function WidgetGrid({ visibleWidgets, onLayoutChange, onRemove, onResize, render
         margin={[16, 16]}
         containerPadding={[0, 0]}
         draggableHandle=".widget-drag-handle"
+        isDroppable={false}
         droppingItem={{ i: '__dropping-elem__', w: 1, h: 1 }}
         onDrop={(layout, item, e) => {
           // Handle drop for stacking
@@ -342,14 +343,27 @@ export default function Dashboard() {
   };
   
   const handleDropOnStacked = (stackedId, draggedWidget) => {
+    console.log('handleDropOnStacked called', { stackedId, draggedWidget });
+    
     const stackedWidget = layout.find(w => w.id === stackedId);
-    if (!stackedWidget) return;
+    if (!stackedWidget) {
+      console.log('Stacked widget not found');
+      return;
+    }
     
     const children = layout.filter(w => w.parentId === stackedId);
-    if (children.length >= 4) return;
+    if (children.length >= 4) {
+      console.log('Stack is full');
+      return;
+    }
     
     const config = WIDGET_CONFIG[draggedWidget.type];
-    if (!config?.stackable) return;
+    if (!config?.stackable) {
+      console.log('Widget not stackable');
+      return;
+    }
+    
+    console.log('Adding widget to stack');
     
     // Check if dragged from another stacked container
     const newLayout = layout.map(w => {
@@ -360,6 +374,7 @@ export default function Dashboard() {
     });
     
     updateUserMutation.mutate({ dashboard_layout: newLayout });
+    toast.success('Widget added to stack');
   };
   
   const handleRemoveFromStacked = (stackedId, childId) => {

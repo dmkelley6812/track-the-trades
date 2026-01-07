@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { Plus } from 'lucide-react';
+import { WIDGET_CONFIG } from './widgetConfig';
 
 export default function StackedWidget({ 
   widget, 
@@ -20,8 +21,22 @@ export default function StackedWidget({
     e.preventDefault();
     e.stopPropagation();
     
-    if (!isFull) {
+    const widgetData = e.dataTransfer.getData('application/json');
+    if (!widgetData) return;
+    
+    try {
+      const draggedWidget = JSON.parse(widgetData);
+      const config = WIDGET_CONFIG[draggedWidget.type];
+      
+      if (!config?.stackable || isFull) {
+        e.dataTransfer.dropEffect = 'none';
+        return;
+      }
+      
       setIsDraggingOver(true);
+      e.dataTransfer.dropEffect = 'move';
+    } catch (err) {
+      e.dataTransfer.dropEffect = 'none';
     }
   };
   
@@ -44,6 +59,14 @@ export default function StackedWidget({
     if (widgetData) {
       try {
         const draggedWidget = JSON.parse(widgetData);
+        const config = WIDGET_CONFIG[draggedWidget.type];
+        
+        if (!config?.stackable) {
+          console.log('Widget not stackable:', draggedWidget.type);
+          return;
+        }
+        
+        console.log('Dropping widget into stack:', draggedWidget);
         onDrop?.(widget.id, draggedWidget);
       } catch (err) {
         console.error('Failed to parse dropped widget:', err);
