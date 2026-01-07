@@ -338,7 +338,7 @@ export default function Trades() {
             <Button
               variant="outline"
               onClick={() => setShowCSVImport(true)}
-              className="border-slate-700 text-white hover:bg-slate-800"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
             >
               Import CSV
             </Button>

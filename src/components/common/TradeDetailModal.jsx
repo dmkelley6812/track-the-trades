@@ -479,7 +479,7 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
                   <Button
                     variant="outline"
                     onClick={() => onEdit(trade)}
-                    className="flex-1 border-slate-600 text-white hover:bg-slate-800"
+                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
                   >
                     <Edit2 className="w-4 h-4 mr-2" />
                     Edit Trade
