@@ -16,6 +16,7 @@ export const WIDGET_TYPES = {
   PNL_BY_DAY_OF_WEEK: 'pnl_by_day_of_week',
   TRADE_COUNT_BY_DAY: 'trade_count_by_day',
   PNL_BY_STRATEGY: 'pnl_by_strategy',
+  STACKED: 'stacked',
 };
 
 // Widget dimension constraints
@@ -32,24 +33,28 @@ export const WIDGET_CONFIG = {
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.WIN_RATE]: {
     label: 'Win Rate',
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.PROFIT_FACTOR]: {
     label: 'Profit Factor',
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.EXPECTANCY]: {
     label: 'Expectancy',
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.TOTAL_TRADES]: {
     label: 'Total Trades',
@@ -62,6 +67,7 @@ export const WIDGET_CONFIG = {
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.AVG_LOSS]: {
     label: 'Average Loss',
@@ -128,6 +134,13 @@ export const WIDGET_CONFIG = {
     category: 'Chart',
     defaultSize: { w: 2, h: 2 },
     constraints: WIDGET_CONSTRAINTS.CHART,
+  },
+  [WIDGET_TYPES.STACKED]: {
+    label: 'Stacked',
+    category: 'Container',
+    defaultSize: { w: 1, h: 1 },
+    constraints: { minW: 1, maxW: 1, minH: 1, maxH: 1 },
+    stackable: false,
   },
 };
 
