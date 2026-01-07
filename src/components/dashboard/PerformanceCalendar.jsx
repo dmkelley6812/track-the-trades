@@ -139,8 +139,8 @@ export default function PerformanceCalendar({ trades, dateRange, onDayClick }) {
         </div>
       </div>
       
-      <div className="flex-1 min-h-0 flex flex-col overflow-auto">
-        <div className="grid grid-cols-7 gap-1 auto-rows-fr">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="grid grid-cols-7 gap-1 h-full" style={{ gridTemplateRows: 'auto repeat(6, 1fr)' }}>
           {/* Day headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div key={day} className="text-center text-[10px] font-medium text-slate-500 pb-1">
