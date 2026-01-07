@@ -57,14 +57,15 @@ export default function Layout({ children, currentPageName }) {
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-slate-900/50 border-r border-slate-800/50 overflow-y-auto">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-800/50">
-            <ExpectancyLogo className="w-10 h-10" />
-            <div>
-              <h1 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: '0.05em' }}>
-                EXPECTANCY
-              </h1>
-              <p className="text-xs text-slate-500">Trade the Math, Not the Noise</p>
-            </div>
+          <div className="flex flex-col items-center gap-3 px-6 py-6 border-b border-slate-800/50">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695be73574dbd3197438974f/ceee94fb3_TrackTheTrades_logo.png" 
+              alt="Track The Trades" 
+              className="w-12 h-12"
+            />
+            <h1 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-500 text-center" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: '0.05em' }}>
+              TRACK THE TRADES
+            </h1>
           </div>
 
           {/* Navigation */}
@@ -120,9 +121,13 @@ export default function Layout({ children, currentPageName }) {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <ExpectancyLogo className="w-8 h-8" />
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695be73574dbd3197438974f/ceee94fb3_TrackTheTrades_logo.png" 
+              alt="Track The Trades" 
+              className="w-8 h-8"
+            />
             <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-              EXPECTANCY
+              TRACK THE TRADES
             </span>
           </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
