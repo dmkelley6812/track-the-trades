@@ -8,6 +8,7 @@ export default function AvgWinWidget({ stats, layoutMode = 'default' }) {
       value={stats.avgWin ? `$${stats.avgWin.toFixed(2)}` : '$0.00'}
       icon={TrendingUp}
       info="Average profit from winning trades"
+      layoutMode={layoutMode}
     />
   );
 }
