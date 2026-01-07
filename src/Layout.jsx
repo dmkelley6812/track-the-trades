@@ -108,7 +108,7 @@ export default function Layout({ children, currentPageName }) {
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full justify-start gap-3 px-4 py-3 text-slate-300 hover:text-red-300 hover:bg-red-500/10"
+              className="w-full justify-start gap-3 px-4 py-3 text-slate-300 hover:text-red-400 hover:bg-red-500/10"
             >
               <LogOut className="w-5 h-5" />
               Sign Out
@@ -169,7 +169,7 @@ export default function Layout({ children, currentPageName }) {
                   <Button
                     variant="ghost"
                     onClick={handleLogout}
-                    className="w-full justify-start gap-3 text-slate-300 hover:text-red-300"
+                    className="w-full justify-start gap-3 text-slate-300 hover:text-red-400"
                   >
                     <LogOut className="w-5 h-5" />
                     Sign Out

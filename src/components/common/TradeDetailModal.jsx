@@ -479,7 +479,7 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
                   <Button
                     variant="outline"
                     onClick={() => onEdit(trade)}
-                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+                    className="flex-1 border-slate-600 text-slate-900 hover:bg-slate-800 hover:text-white"
                   >
                     <Edit2 className="w-4 h-4 mr-2" />
                     Edit Trade
@@ -487,7 +487,7 @@ export default function TradeDetailModal({ trade, open, onClose, onEdit, onDelet
                   <Button
                     variant="outline"
                     onClick={() => onDelete(trade)}
-                    className="border-red-500/50 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                    className="border-red-500/50 text-red-600 hover:bg-red-500/10 hover:text-red-500"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
