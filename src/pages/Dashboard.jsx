@@ -466,21 +466,22 @@ export default function Dashboard() {
           <StatsCard
             title="Total Trades"
             value={stats.totalTrades}
-            subtitle={`${stats.openTrades} open`}
+            subtitle={layoutMode === 'stacked' ? undefined : `${stats.openTrades} open`}
             icon={Activity}
             info="Total number of trades in the selected time period"
+            layoutMode={layoutMode}
           />
         );
       case WIDGET_TYPES.AVG_WIN:
         return <AvgWinWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.AVG_LOSS:
-        return <AvgLossWidget stats={stats} />;
+        return <AvgLossWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.BEST_DAY:
-        return <BestDayWidget stats={stats} />;
+        return <BestDayWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.WORST_DAY:
-        return <WorstDayWidget stats={stats} />;
+        return <WorstDayWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.LARGEST_DRAWDOWN:
-        return <LargestDrawdownWidget stats={stats} />;
+        return <LargestDrawdownWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.PNL_CHART:
         return (
           <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">

@@ -61,6 +61,7 @@ export const WIDGET_CONFIG = {
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.AVG_WIN]: {
     label: 'Average Win',
@@ -74,24 +75,28 @@ export const WIDGET_CONFIG = {
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.BEST_DAY]: {
     label: 'Best Day',
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.WORST_DAY]: {
     label: 'Worst Day',
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.LARGEST_DRAWDOWN]: {
     label: 'Largest Drawdown',
     category: 'KPI',
     defaultSize: { w: 1, h: 1 },
     constraints: WIDGET_CONSTRAINTS.KPI,
+    stackable: true,
   },
   [WIDGET_TYPES.PNL_CHART]: {
     label: 'Cumulative P&L Chart',
