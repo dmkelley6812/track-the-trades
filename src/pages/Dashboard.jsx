@@ -342,37 +342,32 @@ export default function Dashboard() {
     updateUserMutation.mutate({ dashboard_layout: updatedLayout });
   };
   
-  const handleDropOnStacked = (stackedId, draggedWidget) => {
-    console.log('handleDropOnStacked called', { stackedId, draggedWidget });
-    
-    const stackedWidget = layout.find(w => w.id === stackedId);
-    if (!stackedWidget) {
-      console.log('Stacked widget not found');
-      return;
-    }
-    
+  const handleAddToStacked = (stackedId, widgetType) => {
     const children = layout.filter(w => w.parentId === stackedId);
     if (children.length >= 4) {
-      console.log('Stack is full');
+      toast.error('Stack is full (max 4 widgets)');
       return;
     }
     
-    const config = WIDGET_CONFIG[draggedWidget.type];
+    const config = WIDGET_CONFIG[widgetType];
     if (!config?.stackable) {
-      console.log('Widget not stackable');
+      toast.error('This widget cannot be stacked');
       return;
     }
     
-    console.log('Adding widget to stack');
+    const newWidget = {
+      id: `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: widgetType,
+      w: config.defaultSize.w,
+      h: config.defaultSize.h,
+      visible: true,
+      parentId: stackedId,
+      stackOrder: children.length,
+      x: 0,
+      y: 0,
+    };
     
-    // Check if dragged from another stacked container
-    const newLayout = layout.map(w => {
-      if (w.id === draggedWidget.id) {
-        return { ...w, parentId: stackedId, visible: true };
-      }
-      return w;
-    });
-    
+    const newLayout = [...layout, newWidget];
     updateUserMutation.mutate({ dashboard_layout: newLayout });
     toast.success('Widget added to stack');
   };
@@ -380,25 +375,7 @@ export default function Dashboard() {
   const handleRemoveFromStacked = (stackedId, childId) => {
     const newLayout = layout.map(w => {
       if (w.id === childId) {
-        return { ...w, parentId: null, visible: true };
-      }
-      return w;
-    });
-    
-    updateUserMutation.mutate({ dashboard_layout: newLayout });
-  };
-  
-  const handleReorderChildren = (stackedId, fromIndex, toIndex) => {
-    const children = layout.filter(w => w.parentId === stackedId);
-    const reordered = [...children];
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    
-    // Update order field for persistence
-    const newLayout = layout.map(w => {
-      const newIndex = reordered.findIndex(child => child.id === w.id);
-      if (newIndex >= 0) {
-        return { ...w, stackOrder: newIndex };
+        return { ...w, visible: false, parentId: null };
       }
       return w;
     });
@@ -467,14 +444,21 @@ export default function Dashboard() {
         const children = layout
           .filter(w => w.parentId === widget.id)
           .sort((a, b) => (a.stackOrder || 0) - (b.stackOrder || 0));
+        
+        // Get available stackable widgets (excluding ones already in any stack)
+        const childrenInAnyStack = layout.filter(w => w.parentId).map(w => w.type);
+        const availableStackableWidgets = Object.entries(WIDGET_CONFIG).filter(
+          ([type, config]) => config.stackable && !childrenInAnyStack.includes(type)
+        );
+        
         return (
           <StackedWidget
             widget={widget}
             children={children}
             renderWidget={renderWidget}
-            onDrop={handleDropOnStacked}
+            onAddChild={handleAddToStacked}
             onRemoveChild={handleRemoveFromStacked}
-            onReorderChildren={handleReorderChildren}
+            availableStackableWidgets={availableStackableWidgets}
           />
         );
       case WIDGET_TYPES.TOTAL_TRADES:
