@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,13 +20,45 @@ import {
   Save,
   Loader2,
   Crown,
-  Check
+  Check,
+  Sun,
+  Moon,
+  Monitor
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useTheme } from '@/components/ThemeProvider';
+
+const PALETTE_THEMES = [
+  {
+    value: 'colorful',
+    label: 'Colorful',
+    description: 'Vibrant emerald and purple accents',
+    colors: ['#10b981', '#a855f7', '#3b82f6', '#fbbf24']
+  },
+  {
+    value: 'high-contrast',
+    label: 'High Contrast',
+    description: 'Maximum readability with bold colors',
+    colors: ['#00ffff', '#ffff00', '#ff3232', '#00ff64']
+  },
+  {
+    value: 'light',
+    label: 'Light Mode',
+    description: 'Clean light theme with blue accents',
+    colors: ['#6366f1', '#8b5cf6', '#3b82f6', '#f59e0b']
+  },
+  {
+    value: 'monochrome',
+    label: 'Monochrome',
+    description: 'Minimal grayscale aesthetic',
+    colors: ['#d4d4d4', '#f5f5f5', '#b4b4b4', '#a3a3a3']
+  }
+];
 
 export default function Settings() {
   const queryClient = useQueryClient();
+  const { mode, palette, setMode, setPalette } = useTheme();
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -224,23 +257,79 @@ export default function Settings() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Mode Selector */}
               <div>
-                <Label className="text-slate-300">Theme</Label>
-                <Select 
-                  value={settings.theme_preference} 
-                  onValueChange={(v) => handleChange('theme_preference', v)}
-                >
-                  <SelectTrigger className="mt-1.5 bg-slate-800/50 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="dark" className="text-white">Dark</SelectItem>
-                    <SelectItem value="light" className="text-white">Light</SelectItem>
-                    <SelectItem value="system" className="text-white">System</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-slate-300 mb-3 block">Theme Mode</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'light', label: 'Light', icon: Sun },
+                    { value: 'dark', label: 'Dark', icon: Moon },
+                    { value: 'system', label: 'System', icon: Monitor }
+                  ].map(({ value, label, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => setMode(value)}
+                      className={cn(
+                        "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                        mode === value
+                          ? "border-emerald-500 bg-emerald-500/10"
+                          : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
+                      )}
+                    >
+                      <Icon className={cn(
+                        "w-5 h-5",
+                        mode === value ? "text-emerald-400" : "text-slate-400"
+                      )} />
+                      <span className={cn(
+                        "text-sm font-medium",
+                        mode === value ? "text-emerald-400" : "text-slate-300"
+                      )}>
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <Separator className="bg-slate-800" />
+
+              {/* Color Palette Selector */}
+              <div>
+                <Label className="text-slate-300 mb-3 block">Color Palette</Label>
+                <RadioGroup value={palette} onValueChange={setPalette} className="space-y-3">
+                  {PALETTE_THEMES.map((theme) => (
+                    <label
+                      key={theme.value}
+                      className={cn(
+                        "flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                        palette === theme.value
+                          ? "border-emerald-500 bg-emerald-500/10"
+                          : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
+                      )}
+                    >
+                      <RadioGroupItem value={theme.value} className="border-slate-600" />
+                      <div className="flex-1">
+                        <div className="font-medium text-white mb-1">{theme.label}</div>
+                        <div className="text-sm text-slate-400">{theme.description}</div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        {theme.colors.map((color, idx) => (
+                          <div
+                            key={idx}
+                            className="w-6 h-6 rounded-md border border-slate-600"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              <Separator className="bg-slate-800" />
+
+              {/* Timezone */}
               <div>
                 <Label className="text-slate-300">Timezone</Label>
                 <Select 
