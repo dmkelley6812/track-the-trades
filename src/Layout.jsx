@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +19,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ExpectancyLogo from '@/components/common/ExpectancyLogo';
+import { ThemeProvider } from '@/components/ThemeProvider';
+
+// Theme initialization script - runs before React mounts to avoid FOUC
+if (typeof window !== 'undefined') {
+  const getSystemMode = () => {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  const mode = localStorage.getItem('theme-mode') || 'system';
+  const palette = localStorage.getItem('theme-palette') || 'colorful';
+  
+  const resolvedMode = mode === 'system' ? getSystemMode() : mode;
+  
+  document.documentElement.setAttribute('data-mode', resolvedMode);
+  document.documentElement.setAttribute('data-palette', palette);
+}
 
 const NAV_ITEMS = [
   { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
@@ -52,9 +68,10 @@ export default function Layout({ children, currentPageName }) {
     : NAV_ITEMS;
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+    <ThemeProvider>
+      <div className="min-h-screen bg-slate-950">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-slate-900/50 border-r border-slate-800/50 overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center justify-center px-4 py-6 border-b border-slate-800/50">
@@ -173,10 +190,11 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="lg:pl-64 pt-14 lg:pt-0">
-        {children}
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="lg:pl-64 pt-14 lg:pt-0">
+          {children}
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }
