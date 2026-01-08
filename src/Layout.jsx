@@ -23,17 +23,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 
 // Theme initialization script - runs before React mounts to avoid FOUC
 if (typeof window !== 'undefined') {
-  const getSystemMode = () => {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
-
-  const mode = localStorage.getItem('theme-mode') || 'system';
-  const palette = localStorage.getItem('theme-palette') || 'colorful';
-  
-  const resolvedMode = mode === 'system' ? getSystemMode() : mode;
-  
-  document.documentElement.setAttribute('data-mode', resolvedMode);
-  document.documentElement.setAttribute('data-palette', palette);
+  const theme = localStorage.getItem('app-theme') || 'default';
+  document.documentElement.setAttribute('data-theme', theme);
 }
 
 const NAV_ITEMS = [

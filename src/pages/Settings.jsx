@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -14,22 +13,23 @@ import {
   User, 
   Target, 
   Palette, 
-  Bell, 
-  Shield, 
   CreditCard,
   Save,
   Loader2,
   Crown,
-  Check,
-  Sun,
-  Moon,
-  Monitor
+  Check
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from '@/components/ThemeProvider';
 
-const PALETTE_THEMES = [
+const COLOR_THEMES = [
+  {
+    value: 'default',
+    label: 'Default',
+    description: 'Original dark theme with emerald accents',
+    colors: ['#10b981', '#a855f7', '#1e293b', '#334155']
+  },
   {
     value: 'colorful',
     label: 'Colorful',
@@ -58,7 +58,7 @@ const PALETTE_THEMES = [
 
 export default function Settings() {
   const queryClient = useQueryClient();
-  const { mode, palette, setMode, setPalette } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -253,68 +253,32 @@ export default function Settings() {
                 </div>
                 <div>
                   <CardTitle>Appearance</CardTitle>
-                  <CardDescription className="text-slate-500">Customize the look and feel</CardDescription>
+                  <CardDescription className="text-slate-500">Choose your color theme</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Mode Selector */}
+              {/* Color Theme Selector */}
               <div>
-                <Label className="text-slate-300 mb-3 block">Theme Mode</Label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { value: 'light', label: 'Light', icon: Sun },
-                    { value: 'dark', label: 'Dark', icon: Moon },
-                    { value: 'system', label: 'System', icon: Monitor }
-                  ].map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      onClick={() => setMode(value)}
-                      className={cn(
-                        "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
-                        mode === value
-                          ? "border-emerald-500 bg-emerald-500/10"
-                          : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
-                      )}
-                    >
-                      <Icon className={cn(
-                        "w-5 h-5",
-                        mode === value ? "text-emerald-400" : "text-slate-400"
-                      )} />
-                      <span className={cn(
-                        "text-sm font-medium",
-                        mode === value ? "text-emerald-400" : "text-slate-300"
-                      )}>
-                        {label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="bg-slate-800" />
-
-              {/* Color Palette Selector */}
-              <div>
-                <Label className="text-slate-300 mb-3 block">Color Palette</Label>
-                <RadioGroup value={palette} onValueChange={setPalette} className="space-y-3">
-                  {PALETTE_THEMES.map((theme) => (
+                <Label className="text-slate-300 mb-3 block">Color Theme</Label>
+                <RadioGroup value={theme} onValueChange={setTheme} className="space-y-3">
+                  {COLOR_THEMES.map((colorTheme) => (
                     <label
-                      key={theme.value}
+                      key={colorTheme.value}
                       className={cn(
                         "flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
-                        palette === theme.value
+                        theme === colorTheme.value
                           ? "border-emerald-500 bg-emerald-500/10"
                           : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
                       )}
                     >
-                      <RadioGroupItem value={theme.value} className="border-slate-600" />
+                      <RadioGroupItem value={colorTheme.value} className="border-slate-600" />
                       <div className="flex-1">
-                        <div className="font-medium text-white mb-1">{theme.label}</div>
-                        <div className="text-sm text-slate-400">{theme.description}</div>
+                        <div className="font-medium text-white mb-1">{colorTheme.label}</div>
+                        <div className="text-sm text-slate-400">{colorTheme.description}</div>
                       </div>
                       <div className="flex gap-1.5">
-                        {theme.colors.map((color, idx) => (
+                        {colorTheme.colors.map((color, idx) => (
                           <div
                             key={idx}
                             className="w-6 h-6 rounded-md border border-slate-600"
