@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
           {/* Logo */}
           <div className="flex items-center justify-center px-4 py-6 border-b border-slate-800/50">
             <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695be73574dbd3197438974f/2fa707721_TrackTheTrades_logo1.png" 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695be73574dbd3197438974f/b46fe1d90_TrackTheTrades_logo500x300px.png" 
               alt="Track The Trades" 
               className="w-full max-w-[220px]"
             />
@@ -118,7 +118,7 @@ export default function Layout({ children, currentPageName }) {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="flex items-center justify-between px-4 py-3">
             <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695be73574dbd3197438974f/2fa707721_TrackTheTrades_logo1.png" 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695be73574dbd3197438974f/b46fe1d90_TrackTheTrades_logo500x300px.png" 
               alt="Track The Trades" 
               className="h-8"
             />
