@@ -210,101 +210,146 @@ css
         @apply border-border;
       }
 
-      body {
-        background-color: rgb(var(--bg));
-        color: rgb(var(--text));
-      }
-
-      /* Apply theme to main page containers */
+      /* Force root containers to use theme colors */
+      body,
       body > div,
-      body > div > div {
-        background-color: rgb(var(--bg));
-        color: rgb(var(--text));
-      }
-
-      /* Override hardcoded slate backgrounds with theme colors */
-      .bg-slate-950 {
+      #root {
         background-color: rgb(var(--bg)) !important;
-      }
-
-      .bg-slate-900\/50,
-      .bg-slate-900\/30 {
-        background-color: rgb(var(--bg-elevated) / 0.5) !important;
-      }
-
-      .bg-slate-900 {
-        background-color: rgb(var(--bg-elevated)) !important;
-      }
-
-      .bg-slate-800\/50,
-      .bg-slate-800\/30 {
-        background-color: rgb(var(--bg-card) / 0.5) !important;
-      }
-
-      .bg-slate-800 {
-        background-color: rgb(var(--bg-card)) !important;
-      }
-
-      /* Override text colors */
-      .text-white {
         color: rgb(var(--text)) !important;
       }
+    }
 
-      .text-slate-300 {
-        color: rgb(var(--text)) !important;
-      }
+    /* Override all hardcoded Tailwind slate colors with theme tokens */
+    /* Background overrides */
+    .bg-slate-950 {
+      background-color: rgb(var(--bg)) !important;
+    }
 
-      .text-slate-400,
-      .text-slate-500 {
-        color: rgb(var(--text-muted)) !important;
-      }
+    .bg-slate-900\/95 {
+      background-color: rgb(var(--bg-elevated) / 0.95) !important;
+    }
 
-      /* Override border colors */
-      .border-slate-800\/50,
-      .border-slate-800 {
-        border-color: rgb(var(--border) / 0.5) !important;
-      }
+    .bg-slate-900\/50 {
+      background-color: rgb(var(--bg-elevated) / 0.5) !important;
+    }
 
-      .border-slate-700 {
-        border-color: rgb(var(--border)) !important;
-      }
+    .bg-slate-900\/30 {
+      background-color: rgb(var(--bg-elevated) / 0.3) !important;
+    }
 
-      .border-slate-600 {
-        border-color: rgb(var(--border) / 0.8) !important;
-      }
+    .bg-slate-900 {
+      background-color: rgb(var(--bg-elevated)) !important;
+    }
 
-      /* Apply theme colors to common elements */
-      .bg-theme {
-        background-color: rgb(var(--bg));
-      }
+    .bg-slate-800\/50 {
+      background-color: rgb(var(--bg-card) / 0.5) !important;
+    }
 
-      .bg-theme-elevated {
-        background-color: rgb(var(--bg-elevated));
-      }
+    .bg-slate-800\/30 {
+      background-color: rgb(var(--bg-card) / 0.3) !important;
+    }
 
-      .bg-theme-card {
-        background-color: rgb(var(--bg-card));
-      }
+    .bg-slate-800 {
+      background-color: rgb(var(--bg-card)) !important;
+    }
 
-      .text-theme {
-        color: rgb(var(--text));
-      }
+    .bg-slate-700 {
+      background-color: rgb(var(--border)) !important;
+    }
 
-      .text-theme-muted {
-        color: rgb(var(--text-muted));
-      }
+    /* Text color overrides */
+    .text-white {
+      color: rgb(var(--text)) !important;
+    }
 
-      .border-theme {
-        border-color: rgb(var(--border));
-      }
+    .text-slate-200,
+    .text-slate-300 {
+      color: rgb(var(--text)) !important;
+    }
 
-      .bg-primary {
-        background-color: rgb(var(--primary));
-      }
+    .text-slate-400,
+    .text-slate-500,
+    .text-slate-600 {
+      color: rgb(var(--text-muted)) !important;
+    }
 
-      .text-primary {
-        color: rgb(var(--primary));
-      }
+    /* Border color overrides */
+    .border-slate-800\/50 {
+      border-color: rgb(var(--border) / 0.5) !important;
+    }
+
+    .border-slate-800,
+    .border-slate-700 {
+      border-color: rgb(var(--border)) !important;
+    }
+
+    .border-slate-600 {
+      border-color: rgb(var(--border) / 0.8) !important;
+    }
+
+    /* Ring/outline overrides for focus states */
+    .ring-slate-600 {
+      --tw-ring-color: rgb(var(--focus-ring)) !important;
+    }
+
+    /* Placeholder text */
+    .placeholder\:text-slate-500::placeholder {
+      color: rgb(var(--text-muted)) !important;
+    }
+
+    /* Hover states */
+    .hover\:bg-slate-800:hover {
+      background-color: rgb(var(--bg-card)) !important;
+    }
+
+    .hover\:bg-slate-800\/50:hover {
+      background-color: rgb(var(--bg-card) / 0.5) !important;
+    }
+
+    .hover\:bg-slate-800\/30:hover {
+      background-color: rgb(var(--bg-card) / 0.3) !important;
+    }
+
+    .hover\:bg-slate-700:hover {
+      background-color: rgb(var(--border)) !important;
+    }
+
+    .hover\:text-white:hover {
+      color: rgb(var(--text)) !important;
+    }
+
+    .hover\:border-slate-600:hover {
+      border-color: rgb(var(--border) / 0.8) !important;
+    }
+
+    /* Override specific components */
+    aside.lg\:fixed {
+      background-color: rgb(var(--bg-elevated)) !important;
+    }
+
+    /* Theme utility classes */
+    .bg-theme {
+      background-color: rgb(var(--bg));
+    }
+
+    .bg-theme-elevated {
+      background-color: rgb(var(--bg-elevated));
+    }
+
+    .bg-theme-card {
+      background-color: rgb(var(--bg-card));
+    }
+
+    .text-theme {
+      color: rgb(var(--text));
+    }
+
+    .text-theme-muted {
+      color: rgb(var(--text-muted));
+    }
+
+    .border-theme {
+      border-color: rgb(var(--border));
     }
 
 /* Custom Scrollbar Styling */

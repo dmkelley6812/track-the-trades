@@ -260,12 +260,17 @@ export default function Settings() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Debug Info */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-slate-500 font-mono bg-slate-800/50 p-2 rounded">
-                  Current: {theme} | DOM: {typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'N/A'}
+              {/* Debug Info - Always visible for now to verify theme system */}
+              <div className="text-xs font-mono bg-slate-800/50 p-3 rounded space-y-1">
+                <div className="text-slate-400">🔍 Theme Debug Info:</div>
+                <div className="text-emerald-400">Context: {theme}</div>
+                <div className="text-emerald-400">
+                  localStorage: {typeof window !== 'undefined' ? localStorage.getItem('app-theme') || 'null' : 'N/A'}
                 </div>
-              )}
+                <div className="text-emerald-400">
+                  DOM attribute: {typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') || 'null' : 'N/A'}
+                </div>
+              </div>
               
               {/* Color Theme Selector */}
               <div>
