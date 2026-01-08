@@ -108,13 +108,15 @@
       }
 
       /* Light colored buttons should have dark text for readability */
-      button[class*="bg-white"],
-      button[class*="bg-slate-50"],
-      button[class*="bg-slate-100"],
-      button[class*="bg-gray-50"],
-      button[class*="bg-gray-100"],
-      .btn-light {
-        @apply text-slate-800;
+      button[class*="border-slate-6"],
+      button[class*="border-slate-7"],
+      button[class*="text-slate-900"]:not([class*="hover:text-white"]) {
+        @apply !text-slate-800;
+      }
+
+      /* Force dark text on outline variant buttons */
+      button[class*="variant-outline"]:not([class*="border-red"]):not([class*="border-emerald"]):not([class*="border-amber"]) {
+        @apply !text-slate-800;
       }
     }
 
