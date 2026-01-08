@@ -253,11 +253,20 @@ export default function Settings() {
                 </div>
                 <div>
                   <CardTitle>Appearance</CardTitle>
-                  <CardDescription className="text-slate-500">Choose your color theme</CardDescription>
+                  <CardDescription className="text-slate-500">
+                    Choose your color theme (changes apply immediately)
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Debug Info */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-xs text-slate-500 font-mono bg-slate-800/50 p-2 rounded">
+                  Current: {theme} | DOM: {typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'N/A'}
+                </div>
+              )}
+              
               {/* Color Theme Selector */}
               <div>
                 <Label className="text-slate-300 mb-3 block">Color Theme</Label>

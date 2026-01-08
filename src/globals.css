@@ -209,9 +209,68 @@ css
       * {
         @apply border-border;
       }
+
       body {
         background-color: rgb(var(--bg));
         color: rgb(var(--text));
+      }
+
+      /* Apply theme to main page containers */
+      body > div,
+      body > div > div {
+        background-color: rgb(var(--bg));
+        color: rgb(var(--text));
+      }
+
+      /* Override hardcoded slate backgrounds with theme colors */
+      .bg-slate-950 {
+        background-color: rgb(var(--bg)) !important;
+      }
+
+      .bg-slate-900\/50,
+      .bg-slate-900\/30 {
+        background-color: rgb(var(--bg-elevated) / 0.5) !important;
+      }
+
+      .bg-slate-900 {
+        background-color: rgb(var(--bg-elevated)) !important;
+      }
+
+      .bg-slate-800\/50,
+      .bg-slate-800\/30 {
+        background-color: rgb(var(--bg-card) / 0.5) !important;
+      }
+
+      .bg-slate-800 {
+        background-color: rgb(var(--bg-card)) !important;
+      }
+
+      /* Override text colors */
+      .text-white {
+        color: rgb(var(--text)) !important;
+      }
+
+      .text-slate-300 {
+        color: rgb(var(--text)) !important;
+      }
+
+      .text-slate-400,
+      .text-slate-500 {
+        color: rgb(var(--text-muted)) !important;
+      }
+
+      /* Override border colors */
+      .border-slate-800\/50,
+      .border-slate-800 {
+        border-color: rgb(var(--border) / 0.5) !important;
+      }
+
+      .border-slate-700 {
+        border-color: rgb(var(--border)) !important;
+      }
+
+      .border-slate-600 {
+        border-color: rgb(var(--border) / 0.8) !important;
       }
 
       /* Apply theme colors to common elements */
@@ -245,18 +304,6 @@ css
 
       .text-primary {
         color: rgb(var(--primary));
-      }
-
-      /* Light colored buttons should have dark text for readability */
-      button[class*="border-slate-6"],
-      button[class*="border-slate-7"],
-      button[class*="text-slate-900"]:not([class*="hover:text-white"]) {
-        @apply !text-slate-800;
-      }
-
-      /* Force dark text on outline variant buttons */
-      button[class*="variant-outline"]:not([class*="border-red"]):not([class*="border-emerald"]):not([class*="border-amber"]) {
-        @apply !text-slate-800;
       }
     }
 
