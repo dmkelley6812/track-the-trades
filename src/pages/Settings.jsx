@@ -89,6 +89,11 @@ export default function Settings() {
 
   const handleChange = (field, value) => {
     setSettings(prev => ({ ...prev, [field]: value }));
+    
+    // Apply palette immediately on change
+    if (field === 'color_palette') {
+      setPalette(value);
+    }
   };
 
   const handleGoalChange = (field, value) => {
@@ -114,7 +119,7 @@ export default function Settings() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-slate-400 mt-1">Manage your account and preferences</p>
+          <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
         </div>
 
         <div className="space-y-6">
