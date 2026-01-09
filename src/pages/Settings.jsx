@@ -21,44 +21,11 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useTheme } from '@/components/ThemeProvider';
-
-const COLOR_THEMES = [
-  {
-    value: 'default',
-    label: 'Default',
-    description: 'Original dark theme with emerald accents',
-    colors: ['#10b981', '#a855f7', '#1e293b', '#334155']
-  },
-  {
-    value: 'colorful',
-    label: 'Colorful',
-    description: 'Vibrant emerald and purple accents',
-    colors: ['#10b981', '#a855f7', '#3b82f6', '#fbbf24']
-  },
-  {
-    value: 'high-contrast',
-    label: 'High Contrast',
-    description: 'Maximum readability with bold colors',
-    colors: ['#00ffff', '#ffff00', '#ff3232', '#00ff64']
-  },
-  {
-    value: 'light',
-    label: 'Light Mode',
-    description: 'Clean light theme with blue accents',
-    colors: ['#6366f1', '#8b5cf6', '#3b82f6', '#f59e0b']
-  },
-  {
-    value: 'monochrome',
-    label: 'Monochrome',
-    description: 'Minimal grayscale aesthetic',
-    colors: ['#d4d4d4', '#f5f5f5', '#b4b4b4', '#a3a3a3']
-  }
-];
+import { PALETTES, getCurrentPalette, setPalette } from '@/components/PaletteManager';
 
 export default function Settings() {
   const queryClient = useQueryClient();
-  const { theme, setTheme } = useTheme();
+  const [currentPalette, setCurrentPalette] = useState(() => getCurrentPalette());
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -129,6 +96,11 @@ export default function Settings() {
       ...prev,
       trading_goals: { ...prev.trading_goals, [field]: value }
     }));
+  };
+
+  const handlePaletteChange = (paletteId) => {
+    setPalette(paletteId);
+    setCurrentPalette(paletteId);
   };
 
   if (isLoading || !settings) {
@@ -253,76 +225,64 @@ export default function Settings() {
                 </div>
                 <div>
                   <CardTitle>Appearance</CardTitle>
-                  <CardDescription className="text-slate-500">
-                    Choose your color theme (changes apply immediately)
+                  <CardDescription className="text-[rgb(var(--text-muted))]">
+                    Choose your color palette (changes apply instantly)
                   </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Debug Info - Always visible for now to verify theme system */}
-              <div className="text-xs font-mono bg-slate-800/50 p-3 rounded space-y-1">
-                <div className="text-slate-400">🔍 Theme Debug Info:</div>
-                <div className="text-emerald-400">Context: {theme}</div>
-                <div className="text-emerald-400">
-                  localStorage: {typeof window !== 'undefined' ? localStorage.getItem('app-theme') || 'null' : 'N/A'}
-                </div>
-                <div className="text-emerald-400">
-                  DOM attribute: {typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') || 'null' : 'N/A'}
-                </div>
-              </div>
-              
-              {/* Color Theme Selector */}
-              <div>
-                <Label className="text-slate-300 mb-3 block">Color Theme</Label>
-                <RadioGroup value={theme} onValueChange={setTheme} className="space-y-3">
-                  {COLOR_THEMES.map((colorTheme) => (
+                  </div>
+                  </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                  {/* Color Palette Selector */}
+                  <div>
+                  <Label className="text-[rgb(var(--text))] mb-3 block">Color Palette</Label>
+                  <RadioGroup value={currentPalette} onValueChange={handlePaletteChange} className="space-y-3">
+                  {PALETTES.map((palette) => (
                     <label
-                      key={colorTheme.value}
+                      key={palette.id}
                       className={cn(
                         "flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
-                        theme === colorTheme.value
-                          ? "border-emerald-500 bg-emerald-500/10"
-                          : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
+                        currentPalette === palette.id
+                          ? "border-[rgb(var(--primary))] bg-[rgb(var(--primary)/0.1)]"
+                          : "border-[rgb(var(--border))] bg-[rgb(var(--bg-card))] hover:border-[rgb(var(--border))]"
                       )}
                     >
-                      <RadioGroupItem value={colorTheme.value} className="border-slate-600" />
+                      <RadioGroupItem value={palette.id} className="border-[rgb(var(--border))]" />
                       <div className="flex-1">
-                        <div className="font-medium text-white mb-1">{colorTheme.label}</div>
-                        <div className="text-sm text-slate-400">{colorTheme.description}</div>
+                        <div className="font-medium text-[rgb(var(--text))] mb-1">{palette.name}</div>
+                        <div className="text-sm text-[rgb(var(--text-muted))]">{palette.description}</div>
                       </div>
                       <div className="flex gap-1.5">
-                        {colorTheme.colors.map((color, idx) => (
+                        {palette.preview.map((color, idx) => (
                           <div
                             key={idx}
-                            className="w-6 h-6 rounded-md border border-slate-600"
+                            className="w-6 h-6 rounded-md border border-[rgb(var(--border))]"
                             style={{ backgroundColor: color }}
                           />
                         ))}
                       </div>
                     </label>
                   ))}
-                </RadioGroup>
-              </div>
+                  </RadioGroup>
+                  </div>
 
-              <Separator className="bg-slate-800" />
+              <Separator className="bg-[rgb(var(--border))]" />
 
               {/* Timezone */}
               <div>
-                <Label className="text-slate-300">Timezone</Label>
+                <Label className="text-[rgb(var(--text))]">Timezone</Label>
                 <Select 
                   value={settings.timezone} 
                   onValueChange={(v) => handleChange('timezone', v)}
                 >
-                  <SelectTrigger className="mt-1.5 bg-slate-800/50 border-slate-700 text-white">
+                  <SelectTrigger className="mt-1.5 bg-[rgb(var(--bg-card))] border-[rgb(var(--border))] text-[rgb(var(--text))]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="America/New_York" className="text-white">Eastern (ET)</SelectItem>
-                    <SelectItem value="America/Chicago" className="text-white">Central (CT)</SelectItem>
-                    <SelectItem value="America/Denver" className="text-white">Mountain (MT)</SelectItem>
-                    <SelectItem value="America/Los_Angeles" className="text-white">Pacific (PT)</SelectItem>
-                    <SelectItem value="UTC" className="text-white">UTC</SelectItem>
+                  <SelectContent className="bg-[rgb(var(--bg-card))] border-[rgb(var(--border))]">
+                    <SelectItem value="America/New_York" className="text-[rgb(var(--text))]">Eastern (ET)</SelectItem>
+                    <SelectItem value="America/Chicago" className="text-[rgb(var(--text))]">Central (CT)</SelectItem>
+                    <SelectItem value="America/Denver" className="text-[rgb(var(--text))]">Mountain (MT)</SelectItem>
+                    <SelectItem value="America/Los_Angeles" className="text-[rgb(var(--text))]">Pacific (PT)</SelectItem>
+                    <SelectItem value="UTC" className="text-[rgb(var(--text))]">UTC</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

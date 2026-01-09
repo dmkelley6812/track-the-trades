@@ -19,13 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ExpectancyLogo from '@/components/common/ExpectancyLogo';
-import { ThemeProvider } from '@/components/ThemeProvider';
 
-// Theme initialization script - runs before React mounts to avoid FOUC
-if (typeof window !== 'undefined') {
-  const theme = localStorage.getItem('app-theme') || 'default';
-  document.documentElement.setAttribute('data-theme', theme);
-}
+// Palette initialization - handled by PaletteManager
 
 const NAV_ITEMS = [
   { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
@@ -59,7 +54,6 @@ export default function Layout({ children, currentPageName }) {
     : NAV_ITEMS;
 
   return (
-    <ThemeProvider>
       <div className="min-h-screen bg-[rgb(var(--bg))]">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
@@ -186,6 +180,5 @@ export default function Layout({ children, currentPageName }) {
           {children}
         </main>
       </div>
-    </ThemeProvider>
   );
 }

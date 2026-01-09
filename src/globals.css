@@ -6,84 +6,63 @@ css
 @tailwind utilities;
 
 /* ===================================
-   THEME TOKENS
+   THEME SYSTEM - 5 COLOR PALETTES
    =================================== */
 
-/* DEFAULT THEME (Original App Colors) */
+/* Default Palette (Emerald Dark) */
 :root,
-[data-theme="default"] {
+[data-palette="emerald-dark"] {
   --bg: 2 6 23;
   --bg-elevated: 15 23 42;
-  --bg-card: 15 23 42;
+  --bg-card: 30 41 59;
   --text: 248 250 252;
   --text-muted: 148 163 184;
   --border: 51 65 85;
   --primary: 16 185 129;
   --primary-hover: 5 150 105;
-  --primary-muted: 16 185 129;
-  --primary-border: 16 185 129;
   --accent: 168 85 247;
   --danger: 239 68 68;
   --success: 34 197 94;
   --warning: 251 191 36;
   --info: 59 130 246;
-  --focus-ring: 16 185 129;
-  --input-bg: 30 41 59;
-  --shadow: 0 0 0;
-  --hover-bg: 30 41 59;
-  --card-hover: 30 41 59;
 }
 
-/* COLORFUL THEME */
-[data-theme="colorful"] {
-  --bg: 2 6 23;
+/* Blue Ocean Palette */
+[data-palette="blue-ocean"] {
+  --bg: 3 7 18;
   --bg-elevated: 15 23 42;
-  --bg-card: 15 23 42;
+  --bg-card: 30 41 59;
   --text: 248 250 252;
   --text-muted: 148 163 184;
   --border: 51 65 85;
-  --primary: 16 185 129;
-  --primary-hover: 5 150 105;
-  --primary-muted: 16 185 129;
-  --primary-border: 16 185 129;
-  --accent: 168 85 247;
+  --primary: 59 130 246;
+  --primary-hover: 37 99 235;
+  --accent: 139 92 246;
   --danger: 239 68 68;
   --success: 34 197 94;
   --warning: 251 191 36;
-  --info: 59 130 246;
-  --focus-ring: 16 185 129;
-  --input-bg: 30 41 59;
-  --shadow: 0 0 0;
-  --hover-bg: 30 41 59;
-  --card-hover: 30 41 59;
+  --info: 96 165 250;
 }
 
-/* HIGH CONTRAST THEME */
-[data-theme="high-contrast"] {
-  --bg: 0 0 0;
-  --bg-elevated: 17 17 17;
-  --bg-card: 17 17 17;
-  --text: 255 255 255;
-  --text-muted: 220 220 220;
-  --border: 100 100 100;
-  --primary: 0 255 255;
-  --primary-hover: 0 200 200;
-  --primary-muted: 0 255 255;
-  --primary-border: 0 255 255;
-  --accent: 255 255 0;
-  --danger: 255 50 50;
-  --success: 0 255 100;
-  --warning: 255 200 0;
-  --info: 100 200 255;
-  --focus-ring: 0 255 255;
-  --input-bg: 30 30 30;
-  --shadow: 0 0 0;
-  --hover-bg: 40 40 40;
-  --card-hover: 40 40 40;
+/* Purple Midnight Palette */
+[data-palette="purple-midnight"] {
+  --bg: 17 6 23;
+  --bg-elevated: 30 15 42;
+  --bg-card: 45 30 59;
+  --text: 248 250 252;
+  --text-muted: 163 148 184;
+  --border: 75 51 85;
+  --primary: 168 85 247;
+  --primary-hover: 147 51 234;
+  --accent: 236 72 153;
+  --danger: 239 68 68;
+  --success: 34 197 94;
+  --warning: 251 191 36;
+  --info: 139 92 246;
 }
 
-/* LIGHT MODE THEME */
-[data-theme="light"] {
+/* Light Mode Palette */
+[data-palette="light"] {
   --bg: 248 250 252;
   --bg-elevated: 241 245 249;
   --bg-card: 255 255 255;
@@ -92,42 +71,28 @@ css
   --border: 226 232 240;
   --primary: 99 102 241;
   --primary-hover: 79 70 229;
-  --primary-muted: 99 102 241;
-  --primary-border: 99 102 241;
   --accent: 139 92 246;
   --danger: 239 68 68;
   --success: 34 197 94;
   --warning: 251 191 36;
   --info: 59 130 246;
-  --focus-ring: 99 102 241;
-  --input-bg: 248 250 252;
-  --shadow: 15 23 42;
-  --hover-bg: 241 245 249;
-  --card-hover: 255 255 255;
 }
 
-/* MONOCHROME THEME */
-[data-theme="monochrome"] {
+/* Monochrome Palette */
+[data-palette="monochrome"] {
   --bg: 23 23 23;
   --bg-elevated: 38 38 38;
-  --bg-card: 38 38 38;
+  --bg-card: 50 50 50;
   --text: 245 245 245;
   --text-muted: 163 163 163;
-  --border: 64 64 64;
+  --border: 82 82 82;
   --primary: 212 212 212;
   --primary-hover: 163 163 163;
-  --primary-muted: 212 212 212;
-  --primary-border: 212 212 212;
-  --accent: 245 245 245;
+  --accent: 200 200 200;
   --danger: 180 180 180;
   --success: 200 200 200;
   --warning: 190 190 190;
   --info: 200 200 200;
-  --focus-ring: 212 212 212;
-  --input-bg: 30 30 30;
-  --shadow: 0 0 0;
-  --hover-bg: 50 50 50;
-  --card-hover: 50 50 50;
 }
 
 /* React Grid Layout overrides */
@@ -160,12 +125,12 @@ css
 }
 
 .react-grid-item.react-grid-placeholder {
-  background: rgb(16 185 129 / 0.2);
+  background: rgb(var(--primary) / 0.2);
   opacity: 0.2;
   transition-duration: 100ms;
   z-index: 2;
   border-radius: 12px;
-  border: 2px dashed rgb(16 185 129 / 0.5);
+  border: 2px dashed rgb(var(--primary) / 0.5);
 }
 
 @layer base {
@@ -222,251 +187,23 @@ css
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-      }
-    }
+  }
+}
 
-    @layer base {
-      * {
-        @apply border-border;
-      }
+@layer base {
+  * {
+    @apply border-border;
+  }
 
-      /* Force root containers to use theme colors */
-      body,
-      body > div,
-      #root {
-        background-color: rgb(var(--bg)) !important;
-        color: rgb(var(--text)) !important;
-      }
-    }
-
-    /* Override all hardcoded Tailwind slate colors with theme tokens */
-    /* Background overrides */
-    .bg-slate-950 {
-      background-color: rgb(var(--bg)) !important;
-    }
-
-    .bg-slate-900\/95 {
-      background-color: rgb(var(--bg-elevated) / 0.95) !important;
-    }
-
-    .bg-slate-900\/50 {
-      background-color: rgb(var(--bg-elevated) / 0.5) !important;
-    }
-
-    .bg-slate-900\/30 {
-      background-color: rgb(var(--bg-elevated) / 0.3) !important;
-    }
-
-    .bg-slate-900 {
-      background-color: rgb(var(--bg-elevated)) !important;
-    }
-
-    .bg-slate-800\/50 {
-      background-color: rgb(var(--bg-card) / 0.5) !important;
-    }
-
-    .bg-slate-800\/30 {
-      background-color: rgb(var(--bg-card) / 0.3) !important;
-    }
-
-    .bg-slate-800 {
-      background-color: rgb(var(--bg-card)) !important;
-    }
-
-    .bg-slate-700 {
-      background-color: rgb(var(--border)) !important;
-    }
-
-    /* Text color overrides */
-    .text-white {
-      color: rgb(var(--text)) !important;
-    }
-
-    .text-slate-200,
-    .text-slate-300 {
-      color: rgb(var(--text)) !important;
-    }
-
-    .text-slate-400,
-    .text-slate-500,
-    .text-slate-600 {
-      color: rgb(var(--text-muted)) !important;
-    }
-
-    /* Border color overrides */
-    .border-slate-800\/50 {
-      border-color: rgb(var(--border) / 0.5) !important;
-    }
-
-    .border-slate-800,
-    .border-slate-700 {
-      border-color: rgb(var(--border)) !important;
-    }
-
-    .border-slate-600 {
-      border-color: rgb(var(--border) / 0.8) !important;
-    }
-
-    /* Ring/outline overrides for focus states */
-    .ring-slate-600 {
-      --tw-ring-color: rgb(var(--focus-ring)) !important;
-    }
-
-    /* Placeholder text */
-    .placeholder\:text-slate-500::placeholder {
-      color: rgb(var(--text-muted)) !important;
-    }
-
-    /* Hover states */
-    .hover\:bg-slate-800:hover {
-      background-color: rgb(var(--hover-bg)) !important;
-    }
-
-    .hover\:bg-slate-800\/50:hover {
-      background-color: rgb(var(--hover-bg) / 0.5) !important;
-    }
-
-    .hover\:bg-slate-800\/30:hover {
-      background-color: rgb(var(--hover-bg) / 0.3) !important;
-    }
-
-    .hover\:bg-slate-700:hover {
-      background-color: rgb(var(--border)) !important;
-    }
-
-    .hover\:text-white:hover {
-      color: rgb(var(--text)) !important;
-    }
-
-    .hover\:border-slate-600:hover {
-      border-color: rgb(var(--border) / 0.8) !important;
-    }
-
-    /* Emerald color overrides (primary theme color) */
-    .bg-emerald-600 {
-      background-color: rgb(var(--primary)) !important;
-    }
-
-    .bg-emerald-500 {
-      background-color: rgb(var(--primary)) !important;
-    }
-
-    .bg-emerald-500\/10 {
-      background-color: rgb(var(--primary) / 0.1) !important;
-    }
-
-    .bg-emerald-500\/20 {
-      background-color: rgb(var(--primary) / 0.2) !important;
-    }
-
-    .text-emerald-400,
-    .text-emerald-500 {
-      color: rgb(var(--primary)) !important;
-    }
-
-    .text-emerald-300 {
-      color: rgb(var(--primary)) !important;
-    }
-
-    .border-emerald-500 {
-      border-color: rgb(var(--primary-border)) !important;
-    }
-
-    .border-emerald-500\/50,
-    .border-emerald-500\/30,
-    .border-emerald-500\/20 {
-      border-color: rgb(var(--primary-border) / 0.3) !important;
-    }
-
-    .hover\:bg-emerald-700:hover,
-    .hover\:bg-emerald-600:hover {
-      background-color: rgb(var(--primary-hover)) !important;
-    }
-
-    /* Purple/Accent overrides */
-    .bg-purple-500\/20 {
-      background-color: rgb(var(--accent) / 0.2) !important;
-    }
-
-    .text-purple-400 {
-      color: rgb(var(--accent)) !important;
-    }
-
-    /* Amber/Warning overrides */
-    .bg-amber-500\/20,
-    .bg-amber-500\/10 {
-      background-color: rgb(var(--warning) / 0.2) !important;
-    }
-
-    .text-amber-400 {
-      color: rgb(var(--warning)) !important;
-    }
-
-    .border-amber-500\/50,
-    .border-amber-500\/30 {
-      border-color: rgb(var(--warning) / 0.3) !important;
-    }
-
-    /* Red/Danger overrides */
-    .bg-red-500\/10,
-    .bg-red-500\/20 {
-      background-color: rgb(var(--danger) / 0.15) !important;
-    }
-
-    .text-red-400,
-    .text-red-500,
-    .text-red-600 {
-      color: rgb(var(--danger)) !important;
-    }
-
-    .border-red-500\/50,
-    .border-red-500\/30 {
-      border-color: rgb(var(--danger) / 0.3) !important;
-    }
-
-    .hover\:bg-red-500\/10:hover {
-      background-color: rgb(var(--danger) / 0.1) !important;
-    }
-
-    .hover\:text-red-400:hover,
-    .hover\:text-red-500:hover {
-      color: rgb(var(--danger)) !important;
-    }
-
-    /* Override specific components */
-    aside.lg\:fixed {
-      background-color: rgb(var(--bg-elevated)) !important;
-    }
-
-    /* Theme utility classes */
-    .bg-theme {
-      background-color: rgb(var(--bg));
-    }
-
-    .bg-theme-elevated {
-      background-color: rgb(var(--bg-elevated));
-    }
-
-    .bg-theme-card {
-      background-color: rgb(var(--bg-card));
-    }
-
-    .text-theme {
-      color: rgb(var(--text));
-    }
-
-    .text-theme-muted {
-      color: rgb(var(--text-muted));
-    }
-
-    .border-theme {
-      border-color: rgb(var(--border));
-    }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
 /* Custom Scrollbar Styling */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(51 65 85) rgb(15 23 42);
+  scrollbar-color: rgb(var(--border)) rgb(var(--bg-elevated));
 }
 
 *::-webkit-scrollbar {
@@ -475,20 +212,20 @@ css
 }
 
 *::-webkit-scrollbar-track {
-  background: rgb(15 23 42);
+  background: rgb(var(--bg-elevated));
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgb(51 65 85);
+  background: rgb(var(--border));
   border-radius: 4px;
   transition: background 0.2s;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgb(16 185 129 / 0.5);
+  background: rgb(var(--primary) / 0.5);
 }
 
 *::-webkit-scrollbar-corner {
-  background: rgb(15 23 42);
+  background: rgb(var(--bg-elevated));
 }
