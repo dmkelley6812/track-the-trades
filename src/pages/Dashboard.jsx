@@ -454,7 +454,7 @@ export default function Dashboard() {
           <StatsCard
             title="Total P&L"
             value={
-              <span className={stats.totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}>
+              <span className={stats.totalPnL >= 0 ? "text-primary" : "text-destructive"}>
                 ${stats.totalPnL.toFixed(2)}
               </span>
             }
@@ -480,7 +480,7 @@ export default function Dashboard() {
           <StatsCard
             title="Profit Factor"
             value={
-              <span className={stats.profitFactor >= 1.5 ? "text-emerald-400" : stats.profitFactor >= 1 ? "text-white" : "text-red-400"}>
+              <span className={stats.profitFactor >= 1.5 ? "text-primary" : stats.profitFactor >= 1 ? "text-foreground" : "text-destructive"}>
                 {stats.profitFactor.toFixed(2)}
               </span>
             }
@@ -494,7 +494,7 @@ export default function Dashboard() {
           <StatsCard
             title="Expectancy"
             value={
-              <span className={stats.expectancy >= 0 ? "text-emerald-400" : "text-red-400"}>
+              <span className={stats.expectancy >= 0 ? "text-primary" : "text-destructive"}>
                 ${stats.expectancy.toFixed(2)}
               </span>
             }
@@ -548,7 +548,7 @@ export default function Dashboard() {
         return <LargestDrawdownWidget stats={stats} layoutMode={layoutMode} />;
       case WIDGET_TYPES.PNL_CHART:
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-6 h-full flex flex-col">
+          <div className="bg-card border border-border rounded-2xl p-6 h-full flex flex-col">
             <h2 className="text-lg font-semibold mb-4">Cumulative P&L</h2>
             <div className="flex-1 min-h-0">
               <PnLChart trades={filteredTrades} />
@@ -558,7 +558,7 @@ export default function Dashboard() {
       case WIDGET_TYPES.WIN_RATE_GAUGE:
         const gaugeSize = widget.w === 1 ? 'small' : 'normal';
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-3 h-full flex items-center justify-center">
+          <div className="bg-card border border-border rounded-2xl p-3 h-full flex items-center justify-center">
             <WinRateGauge 
               winRate={stats.winRate} 
               wins={stats.wins} 
@@ -570,11 +570,11 @@ export default function Dashboard() {
       case WIDGET_TYPES.RECENT_TRADES:
         const tradesCompact = widget.w < 2 || widget.h < 2;
         return (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-3 h-full flex flex-col">
+          <div className="bg-card border border-border rounded-2xl p-3 h-full flex flex-col">
             {!tradesCompact && <h2 className="text-lg font-semibold mb-4">All Trades</h2>}
             {tradesLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
               <div className="flex-1 min-h-0">
@@ -596,7 +596,7 @@ export default function Dashboard() {
       case WIDGET_TYPES.PNL_BY_STRATEGY:
         return <PnLByStrategyWidget trades={filteredTrades} />;
       default:
-        return <div className="bg-slate-800/50 p-4 rounded-lg">Unknown widget</div>;
+        return <div className="bg-muted p-4 rounded-lg">Unknown widget</div>;
     }
   };
 
@@ -655,8 +655,8 @@ export default function Dashboard() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -666,19 +666,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-slate-400 mt-1">Track your trading performance</p>
+            <p className="text-muted-foreground mt-1">Track your trading performance</p>
           </div>
           <div className="flex gap-3">
             <Button
               variant="outline"
               onClick={() => setShowCustomizer(true)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
             >
               <Settings className="w-4 h-4 mr-2" />
               Customize
@@ -686,7 +685,6 @@ export default function Dashboard() {
             <Button
               variant="outline"
               onClick={() => setShowImporter(true)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
             >
               <Upload className="w-4 h-4 mr-2" />
               Import
@@ -696,7 +694,7 @@ export default function Dashboard() {
                 setEditingTrade(null);
                 setShowTradeForm(true);
               }}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Trade
@@ -736,7 +734,7 @@ export default function Dashboard() {
 
       {/* Trade Form Sheet */}
       <Sheet open={showTradeForm} onOpenChange={setShowTradeForm}>
-        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-4xl overflow-y-auto">
+        <SheetContent className="bg-card border-border w-full sm:max-w-4xl overflow-y-auto">
           <TradeFormEnhanced
             trade={editingTrade}
             onSubmit={handleTradeSubmit}
@@ -751,7 +749,7 @@ export default function Dashboard() {
 
       {/* CSV Importer Sheet */}
       <Sheet open={showImporter} onOpenChange={setShowImporter}>
-        <SheetContent className="bg-slate-900 border-slate-800 w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="bg-card border-border w-full sm:max-w-lg overflow-y-auto">
           <CSVImporter
             onImportComplete={() => {
               setShowImporter(false);
