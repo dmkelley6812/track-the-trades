@@ -104,14 +104,14 @@ export default function InsightsPage() {
 
   if (loadingConversations) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[rgb(var(--bg))]">
-        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--primary))]" />
+      <div className="flex items-center justify-center h-screen bg-slate-950">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-[rgb(var(--bg))]">
+    <div className="flex h-screen bg-slate-950">
       {/* Sidebar - Conversation History */}
       <aside className="w-64 border-r border-slate-800 bg-slate-900/30 flex flex-col">
         <div className="p-4 border-b border-slate-800">
@@ -132,8 +132,8 @@ export default function InsightsPage() {
                 className={cn(
                   "w-full text-left p-3 rounded-lg mb-1 transition-colors text-sm",
                   conversationId === conv.id
-                    ? "bg-[rgb(var(--primary)/0.2)] text-[rgb(var(--primary))] border border-[rgb(var(--primary-border))]"
-                    : "text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--hover-bg))] hover:text-[rgb(var(--text))]"
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -142,13 +142,13 @@ export default function InsightsPage() {
                     {conv.metadata?.name || 'Trading Insights Chat'}
                   </span>
                 </div>
-                <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   {new Date(conv.created_date).toLocaleDateString()}
                 </p>
               </button>
             ))
           ) : (
-            <p className="text-sm text-[rgb(var(--text-muted))] text-center mt-8">
+            <p className="text-sm text-slate-500 text-center mt-8">
               No conversations yet
             </p>
           )}
@@ -158,14 +158,14 @@ export default function InsightsPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] p-4">
+        <header className="border-b border-slate-800 bg-slate-900/30 p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[rgb(var(--primary))] to-[rgb(var(--primary))] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[rgb(var(--text))]" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-[rgb(var(--text))]">Trading Insights AI</h1>
-              <p className="text-sm text-[rgb(var(--text-muted))]">Ask me anything about your trading performance</p>
+              <h1 className="text-lg font-semibold text-white">Trading Insights AI</h1>
+              <p className="text-sm text-slate-400">Ask me anything about your trading performance</p>
             </div>
           </div>
         </header>
@@ -175,17 +175,17 @@ export default function InsightsPage() {
           {!conversationId ? (
             <div className="max-w-2xl mx-auto mt-12">
               <div className="text-center mb-8">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--primary))] to-[rgb(var(--primary))] flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-8 h-8 text-[rgb(var(--text))]" />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-[rgb(var(--text))] mb-2">Welcome to Trading Insights</h2>
-                <p className="text-[rgb(var(--text-muted))]">
+                <h2 className="text-2xl font-bold text-white mb-2">Welcome to Trading Insights</h2>
+                <p className="text-slate-400">
                   I can analyze your complete trading history and journal entries to provide personalized insights
                 </p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-medium text-[rgb(var(--text-muted))] uppercase tracking-wide">Suggested Questions</p>
+                <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">Suggested Questions</p>
                 {STARTER_QUESTIONS.map((question, idx) => (
                   <button
                     key={idx}
@@ -201,10 +201,10 @@ export default function InsightsPage() {
             <>
               {messages.length === 0 ? (
                 <div className="text-center mt-12">
-                  <div className="w-16 h-16 rounded-2xl bg-[rgb(var(--bg-card))] flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="w-8 h-8 text-[rgb(var(--text-muted))]" />
+                  <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-8 h-8 text-slate-500" />
                   </div>
-                  <p className="text-[rgb(var(--text-muted))]">Ask me anything about your trading performance</p>
+                  <p className="text-slate-400">Ask me anything about your trading performance</p>
                 </div>
               ) : (
                 messages.map((msg, idx) => (
@@ -217,7 +217,7 @@ export default function InsightsPage() {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-[rgb(var(--border))] bg-[rgb(var(--bg-elevated))] p-4">
+        <div className="border-t border-slate-800 bg-slate-900/30 p-4">
           <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-3">
             <Textarea
               value={input}
@@ -244,7 +244,7 @@ export default function InsightsPage() {
               )}
             </Button>
           </form>
-          <p className="text-xs text-[rgb(var(--text-muted))] text-center mt-2">
+          <p className="text-xs text-slate-500 text-center mt-2">
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>

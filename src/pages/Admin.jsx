@@ -42,18 +42,18 @@ export default function Admin() {
 
   if (userLoading || usersLoading || tradesLoading) {
     return (
-      <div className="min-h-screen bg-[rgb(var(--bg))] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--primary))]" />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     );
   }
 
   if (currentUser?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-[rgb(var(--bg))] flex items-center justify-center text-[rgb(var(--text))]">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-[rgb(var(--text-muted))]">You don't have permission to view this page.</p>
+          <p className="text-slate-400">You don't have permission to view this page.</p>
         </div>
       </div>
     );
@@ -72,12 +72,12 @@ export default function Admin() {
     .slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--text))]">
+    <div className="min-h-screen bg-slate-950 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-[rgb(var(--text-muted))] mt-1">Monitor user activity and app statistics</p>
+          <p className="text-slate-400 mt-1">Monitor user activity and app statistics</p>
         </div>
 
         {/* Stats Grid */}
@@ -92,10 +92,10 @@ export default function Admin() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Users */}
-          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))]">
+          <Card className="bg-slate-900/50 border-slate-800/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-[rgb(var(--text-muted))]" />
+                <Users className="w-5 h-5 text-slate-400" />
                 Recent Users
               </CardTitle>
             </CardHeader>
@@ -107,26 +107,26 @@ export default function Admin() {
                     className="flex items-center justify-between p-3 rounded-xl bg-slate-800/30"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[rgb(var(--border))] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
                         <span className="text-sm font-medium">
                           {user.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || '?'}
                         </span>
                       </div>
                       <div>
                         <p className="font-medium">{user.full_name || 'Unknown'}</p>
-                        <p className="text-sm text-[rgb(var(--text-muted))]">{user.email}</p>
+                        <p className="text-sm text-slate-400">{user.email}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <Badge className={cn(
                         "text-xs",
                         user.subscription_tier === 'pro' 
-                          ? "bg-[rgb(var(--warning)/0.2)] text-[rgb(var(--warning))] border-[rgb(var(--warning))]" 
-                          : "bg-[rgb(var(--border))] text-[rgb(var(--text-muted))]"
+                          ? "bg-amber-500/20 text-amber-400 border-amber-500/50" 
+                          : "bg-slate-700 text-slate-400"
                       )}>
                         {user.subscription_tier === 'pro' ? 'Pro' : 'Free'}
                       </Badge>
-                      <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         {format(new Date(user.created_date), 'MMM d, yyyy')}
                       </p>
                     </div>
@@ -137,16 +137,16 @@ export default function Admin() {
           </Card>
 
           {/* Recent Imports */}
-          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))]">
+          <Card className="bg-slate-900/50 border-slate-800/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Upload className="w-5 h-5 text-[rgb(var(--text-muted))]" />
+                <Upload className="w-5 h-5 text-slate-400" />
                 Recent Imports
               </CardTitle>
             </CardHeader>
             <CardContent>
               {importLogs.length === 0 ? (
-                <p className="text-[rgb(var(--text-muted))] text-center py-8">No imports yet</p>
+                <p className="text-slate-500 text-center py-8">No imports yet</p>
               ) : (
                 <div className="space-y-3">
                   {importLogs.map((log) => (
@@ -162,21 +162,21 @@ export default function Admin() {
                           <Badge className={cn(
                             "text-xs",
                             log.status === 'success' 
-                              ? "bg-[rgb(var(--success)/0.2)] text-[rgb(var(--success))] border-[rgb(var(--success))]" 
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50" 
                               : log.status === 'partial'
-                              ? "bg-[rgb(var(--warning)/0.2)] text-[rgb(var(--warning))] border-[rgb(var(--warning))]"
-                              : "bg-[rgb(var(--danger)/0.2)] text-[rgb(var(--danger))] border-[rgb(var(--danger))]"
+                              ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
+                              : "bg-red-500/20 text-red-400 border-red-500/50"
                           )}>
                             {log.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-[rgb(var(--text-muted))] mt-1">
+                        <p className="text-sm text-slate-400 mt-1">
                           {log.trades_imported} imported
                           {log.trades_failed > 0 && `, ${log.trades_failed} failed`}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-[rgb(var(--text-muted))]">
+                        <p className="text-xs text-slate-500">
                           {format(new Date(log.created_date), 'MMM d, h:mm a')}
                         </p>
                       </div>
@@ -189,29 +189,29 @@ export default function Admin() {
         </div>
 
         {/* User Subscription Breakdown */}
-        <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))] mt-6">
+        <Card className="bg-slate-900/50 border-slate-800/50 mt-6">
           <CardHeader>
             <CardTitle>Subscription Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-8">
               <div className="flex-1">
-                <div className="h-4 rounded-full bg-[rgb(var(--bg-card))] overflow-hidden">
+                <div className="h-4 rounded-full bg-slate-800 overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-[rgb(var(--primary))] to-[rgb(var(--primary))]"
+                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400"
                     style={{ width: `${users.length > 0 ? (freeUsers / users.length) * 100 : 0}%` }}
                   />
                 </div>
                 <div className="flex justify-between mt-2 text-sm">
-                  <span className="text-[rgb(var(--text-muted))]">Free: {freeUsers}</span>
-                  <span className="text-[rgb(var(--warning))]">Pro: {proUsers}</span>
+                  <span className="text-slate-400">Free: {freeUsers}</span>
+                  <span className="text-amber-400">Pro: {proUsers}</span>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold text-[rgb(var(--primary))]">
+                <p className="text-3xl font-bold text-emerald-400">
                   {users.length > 0 ? ((proUsers / users.length) * 100).toFixed(1) : 0}%
                 </p>
-                <p className="text-sm text-[rgb(var(--text-muted))]">Pro conversion</p>
+                <p className="text-sm text-slate-400">Pro conversion</p>
               </div>
             </div>
           </CardContent>

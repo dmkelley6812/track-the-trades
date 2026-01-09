@@ -1,99 +1,8 @@
-css
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ===================================
-   THEME SYSTEM - 5 COLOR PALETTES
-   =================================== */
-
-/* Default Palette (Emerald Dark) */
-:root,
-[data-palette="emerald-dark"] {
-  --bg: 2 6 23;
-  --bg-elevated: 15 23 42;
-  --bg-card: 30 41 59;
-  --text: 248 250 252;
-  --text-muted: 148 163 184;
-  --border: 51 65 85;
-  --primary: 16 185 129;
-  --primary-hover: 5 150 105;
-  --accent: 168 85 247;
-  --danger: 239 68 68;
-  --success: 34 197 94;
-  --warning: 251 191 36;
-  --info: 59 130 246;
-}
-
-/* Blue Ocean Palette */
-[data-palette="blue-ocean"] {
-  --bg: 3 7 18;
-  --bg-elevated: 15 23 42;
-  --bg-card: 30 41 59;
-  --text: 248 250 252;
-  --text-muted: 148 163 184;
-  --border: 51 65 85;
-  --primary: 59 130 246;
-  --primary-hover: 37 99 235;
-  --accent: 139 92 246;
-  --danger: 239 68 68;
-  --success: 34 197 94;
-  --warning: 251 191 36;
-  --info: 96 165 250;
-}
-
-/* Purple Midnight Palette */
-[data-palette="purple-midnight"] {
-  --bg: 17 6 23;
-  --bg-elevated: 30 15 42;
-  --bg-card: 45 30 59;
-  --text: 248 250 252;
-  --text-muted: 163 148 184;
-  --border: 75 51 85;
-  --primary: 168 85 247;
-  --primary-hover: 147 51 234;
-  --accent: 236 72 153;
-  --danger: 239 68 68;
-  --success: 34 197 94;
-  --warning: 251 191 36;
-  --info: 139 92 246;
-}
-
-/* Light Mode Palette */
-[data-palette="light"] {
-  --bg: 248 250 252;
-  --bg-elevated: 241 245 249;
-  --bg-card: 255 255 255;
-  --text: 15 23 42;
-  --text-muted: 100 116 139;
-  --border: 226 232 240;
-  --primary: 99 102 241;
-  --primary-hover: 79 70 229;
-  --accent: 139 92 246;
-  --danger: 239 68 68;
-  --success: 34 197 94;
-  --warning: 251 191 36;
-  --info: 59 130 246;
-}
-
-/* Monochrome Palette */
-[data-palette="monochrome"] {
-  --bg: 23 23 23;
-  --bg-elevated: 38 38 38;
-  --bg-card: 50 50 50;
-  --text: 245 245 245;
-  --text-muted: 163 163 163;
-  --border: 82 82 82;
-  --primary: 212 212 212;
-  --primary-hover: 163 163 163;
-  --accent: 200 200 200;
-  --danger: 180 180 180;
-  --success: 200 200 200;
-  --warning: 190 190 190;
-  --info: 200 200 200;
-}
 
 /* React Grid Layout overrides */
 .react-grid-layout {
@@ -125,12 +34,12 @@ css
 }
 
 .react-grid-item.react-grid-placeholder {
-  background: rgb(var(--primary) / 0.2);
+  background: rgb(16 185 129 / 0.2);
   opacity: 0.2;
   transition-duration: 100ms;
   z-index: 2;
   border-radius: 12px;
-  border: 2px dashed rgb(var(--primary) / 0.5);
+  border: 2px dashed rgb(16 185 129 / 0.5);
 }
 
 @layer base {
@@ -187,23 +96,34 @@ css
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-  }
-}
+      }
+    }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+    @layer base {
+      * {
+        @apply border-border;
+      }
+      body {
+        @apply bg-background text-foreground;
+      }
 
-  body {
-    @apply bg-background text-foreground;
-  }
-}
+      /* Light colored buttons should have dark text for readability */
+      button[class*="border-slate-6"],
+      button[class*="border-slate-7"],
+      button[class*="text-slate-900"]:not([class*="hover:text-white"]) {
+        @apply !text-slate-800;
+      }
+
+      /* Force dark text on outline variant buttons */
+      button[class*="variant-outline"]:not([class*="border-red"]):not([class*="border-emerald"]):not([class*="border-amber"]) {
+        @apply !text-slate-800;
+      }
+    }
 
 /* Custom Scrollbar Styling */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(var(--border)) rgb(var(--bg-elevated));
+  scrollbar-color: rgb(51 65 85) rgb(15 23 42);
 }
 
 *::-webkit-scrollbar {
@@ -212,20 +132,20 @@ css
 }
 
 *::-webkit-scrollbar-track {
-  background: rgb(var(--bg-elevated));
+  background: rgb(15 23 42);
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgb(var(--border));
+  background: rgb(51 65 85);
   border-radius: 4px;
   transition: background 0.2s;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--primary) / 0.5);
+  background: rgb(16 185 129 / 0.5);
 }
 
 *::-webkit-scrollbar-corner {
-  background: rgb(var(--bg-elevated));
+  background: rgb(15 23 42);
 }
