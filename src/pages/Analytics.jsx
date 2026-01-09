@@ -109,11 +109,11 @@ export default function Analytics() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl">
-          <p className="text-slate-400 text-xs mb-1">{label}</p>
+        <div className="bg-[rgb(var(--bg-card))] border border-[rgb(var(--border))] rounded-lg p-3 shadow-xl">
+          <p className="text-[rgb(var(--text-muted))] text-xs mb-1">{label}</p>
           <p className={cn(
             "font-semibold",
-            payload[0].value >= 0 ? "text-emerald-400" : "text-red-400"
+            payload[0].value >= 0 ? "text-[rgb(var(--success))]" : "text-[rgb(var(--danger))]"
           )}>
             ${payload[0].value?.toFixed(2)}
           </p>
@@ -125,30 +125,30 @@ export default function Analytics() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      <div className="min-h-screen bg-[rgb(var(--bg))] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--primary))]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--text))]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold">Analytics</h1>
-            <p className="text-slate-400 mt-1">Deep dive into your trading performance</p>
+            <p className="text-[rgb(var(--text-muted))] mt-1">Deep dive into your trading performance</p>
           </div>
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-40 bg-slate-900/50 border-slate-800 text-white">
+            <SelectTrigger className="w-40 bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))] text-[rgb(var(--text))]">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
-              <SelectItem value="7" className="text-white">Last 7 days</SelectItem>
-              <SelectItem value="30" className="text-white">Last 30 days</SelectItem>
-              <SelectItem value="90" className="text-white">Last 90 days</SelectItem>
-              <SelectItem value="365" className="text-white">Last year</SelectItem>
+            <SelectContent className="bg-[rgb(var(--bg-card))] border-[rgb(var(--border))]">
+              <SelectItem value="7" className="text-[rgb(var(--text))]">Last 7 days</SelectItem>
+              <SelectItem value="30" className="text-[rgb(var(--text))]">Last 30 days</SelectItem>
+              <SelectItem value="90" className="text-[rgb(var(--text))]">Last 90 days</SelectItem>
+              <SelectItem value="365" className="text-[rgb(var(--text))]">Last year</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -166,7 +166,7 @@ export default function Analytics() {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Daily P&L Trend */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))] p-6">
             <h3 className="text-lg font-semibold mb-4">Daily P&L Trend</h3>
             {dailyTrend.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
@@ -190,14 +190,14 @@ export default function Analytics() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-slate-500">
+              <div className="h-[250px] flex items-center justify-center text-[rgb(var(--text-muted))]">
                 No data available
               </div>
             )}
           </Card>
 
           {/* P&L by Day of Week */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))] p-6">
             <h3 className="text-lg font-semibold mb-4">P&L by Day of Week</h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={dayOfWeekData}>
@@ -221,7 +221,7 @@ export default function Analytics() {
         {/* More Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Symbols */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))] p-6">
             <h3 className="text-lg font-semibold mb-4">P&L by Symbol</h3>
             {topSymbols.length > 0 ? (
               <div className="space-y-3">
@@ -233,11 +233,11 @@ export default function Analytics() {
                         style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                       />
                       <span className="font-medium">{item.symbol}</span>
-                      <span className="text-slate-500 text-sm">({item.trades} trades)</span>
+                      <span className="text-[rgb(var(--text-muted))] text-sm">({item.trades} trades)</span>
                     </div>
                     <span className={cn(
                       "font-semibold",
-                      item.pnl >= 0 ? "text-emerald-400" : "text-red-400"
+                      item.pnl >= 0 ? "text-[rgb(var(--success))]" : "text-[rgb(var(--danger))]"
                     )}>
                       {item.pnl >= 0 ? '+' : ''}${item.pnl.toFixed(2)}
                     </span>
@@ -252,7 +252,7 @@ export default function Analytics() {
           </Card>
 
           {/* Setup Performance */}
-          <Card className="bg-slate-900/50 border-slate-800/50 p-6">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))] p-6">
             <h3 className="text-lg font-semibold mb-4">Performance by Setup</h3>
             {setupPerformance.length > 0 ? (
               <div className="space-y-3">
@@ -260,17 +260,17 @@ export default function Analytics() {
                   const totalTrades = item.wins + item.losses;
                   const wr = totalTrades > 0 ? (item.wins / totalTrades) * 100 : 0;
                   return (
-                    <div key={item.setup} className="bg-slate-800/30 rounded-xl p-3">
+                    <div key={item.setup} className="bg-[rgb(var(--bg-card))] rounded-xl p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">{item.setup}</span>
                         <span className={cn(
                           "font-semibold",
-                          item.pnl >= 0 ? "text-emerald-400" : "text-red-400"
+                          item.pnl >= 0 ? "text-[rgb(var(--success))]" : "text-[rgb(var(--danger))]"
                         )}>
                           {item.pnl >= 0 ? '+' : ''}${item.pnl.toFixed(2)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-[rgb(var(--text-muted))]">
                         <span>{item.wins}W / {item.losses}L</span>
                         <span>{wr.toFixed(0)}% WR</span>
                       </div>
@@ -289,32 +289,32 @@ export default function Analytics() {
         {/* Best/Worst Trades */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
           {bestTrade && (
-            <Card className="bg-emerald-500/5 border-emerald-500/20 p-6">
-              <h3 className="text-sm text-emerald-400 font-medium mb-2">Best Trade</h3>
+            <Card className="bg-[rgb(var(--success)/0.05)] border-[rgb(var(--success)/0.2)] p-6">
+              <h3 className="text-sm text-[rgb(var(--success))] font-medium mb-2">Best Trade</h3>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-2xl font-bold">{bestTrade.symbol}</p>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-[rgb(var(--text-muted))] text-sm">
                     {format(new Date(bestTrade.entry_date), 'MMM d, yyyy')}
                   </p>
                 </div>
-                <p className="text-3xl font-bold text-emerald-400">
+                <p className="text-3xl font-bold text-[rgb(var(--success))]">
                   +${bestTrade.profit_loss?.toFixed(2)}
                 </p>
               </div>
             </Card>
           )}
           {worstTrade && (
-            <Card className="bg-red-500/5 border-red-500/20 p-6">
-              <h3 className="text-sm text-red-400 font-medium mb-2">Worst Trade</h3>
+            <Card className="bg-[rgb(var(--danger)/0.05)] border-[rgb(var(--danger)/0.2)] p-6">
+              <h3 className="text-sm text-[rgb(var(--danger))] font-medium mb-2">Worst Trade</h3>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-2xl font-bold">{worstTrade.symbol}</p>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-[rgb(var(--text-muted))] text-sm">
                     {format(new Date(worstTrade.entry_date), 'MMM d, yyyy')}
                   </p>
                 </div>
-                <p className="text-3xl font-bold text-red-400">
+                <p className="text-3xl font-bold text-[rgb(var(--danger))]">
                   ${worstTrade.profit_loss?.toFixed(2)}
                 </p>
               </div>
