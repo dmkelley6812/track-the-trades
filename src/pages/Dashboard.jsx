@@ -558,7 +558,7 @@ export default function Dashboard() {
       case WIDGET_TYPES.WIN_RATE_GAUGE:
         const gaugeSize = widget.w === 1 ? 'small' : 'normal';
         return (
-          <div className="bg-background border rounded-2xl p-3 h-full flex items-center justify-center">
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-2xl p-3 h-full flex items-center justify-center">
             <WinRateGauge 
               winRate={stats.winRate} 
               wins={stats.wins} 
