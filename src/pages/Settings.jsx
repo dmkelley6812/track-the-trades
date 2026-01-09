@@ -105,8 +105,8 @@ export default function Settings() {
 
   if (isLoading || !settings) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      <div className="min-h-screen bg-[rgb(var(--bg))] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--primary))]" />
       </div>
     );
   }
@@ -114,25 +114,25 @@ export default function Settings() {
   const isPro = user?.subscription_tier === 'pro';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--text))]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-slate-400 mt-1">Manage your account and preferences</p>
+          <p className="text-[rgb(var(--text-muted))] mt-1">Manage your account and preferences</p>
         </div>
 
         <div className="space-y-6">
           {/* Account Info */}
-          <Card className="bg-slate-900/50 border-slate-800/50">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))]">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-slate-800">
-                  <User className="w-5 h-5 text-slate-400" />
+                <div className="p-2 rounded-lg bg-[rgb(var(--bg-card))]">
+                  <User className="w-5 h-5 text-[rgb(var(--text-muted))]" />
                 </div>
                 <div>
                   <CardTitle>Account</CardTitle>
-                  <CardDescription className="text-slate-500">Your account information</CardDescription>
+                  <CardDescription className="text-[rgb(var(--text-muted))]">Your account information</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -140,11 +140,11 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{user?.full_name || 'Trader'}</p>
-                  <p className="text-sm text-slate-400">{user?.email}</p>
+                  <p className="text-sm text-[rgb(var(--text-muted))]">{user?.email}</p>
                 </div>
                 <Badge className={cn(
                   "text-xs",
-                  isPro ? "bg-amber-500/20 text-amber-400 border-amber-500/50" : "bg-slate-700 text-slate-400"
+                  isPro ? "bg-[rgb(var(--warning)/0.2)] text-[rgb(var(--warning))] border-[rgb(var(--warning))]" : "bg-[rgb(var(--border))] text-[rgb(var(--text-muted))]"
                 )}>
                   {isPro ? (
                     <>
@@ -158,58 +158,58 @@ export default function Settings() {
           </Card>
 
           {/* Trading Goals */}
-          <Card className="bg-slate-900/50 border-slate-800/50">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))]">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-500/20">
-                  <Target className="w-5 h-5 text-emerald-400" />
+                <div className="p-2 rounded-lg bg-[rgb(var(--primary)/0.2)]">
+                  <Target className="w-5 h-5 text-[rgb(var(--primary))]" />
                 </div>
                 <div>
                   <CardTitle>Trading Goals</CardTitle>
-                  <CardDescription className="text-slate-500">Set your daily and weekly targets</CardDescription>
+                  <CardDescription className="text-[rgb(var(--text-muted))]">Set your daily and weekly targets</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Account Size ($)</Label>
+                  <Label className="text-[rgb(var(--text))]">Account Size ($)</Label>
                   <Input
                     type="number"
                     value={settings.default_account_size}
                     onChange={(e) => handleChange('default_account_size', e.target.value)}
                     placeholder="25000"
-                    className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                    className="mt-1.5 bg-[rgb(var(--bg-card))] border-[rgb(var(--border))] text-[rgb(var(--text))] placeholder:text-[rgb(var(--text-muted))]"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Daily Profit Target ($)</Label>
+                  <Label className="text-[rgb(var(--text))]">Daily Profit Target ($)</Label>
                   <Input
                     type="number"
                     value={settings.trading_goals.daily_profit_target}
                     onChange={(e) => handleGoalChange('daily_profit_target', e.target.value)}
                     placeholder="500"
-                    className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                    className="mt-1.5 bg-[rgb(var(--bg-card))] border-[rgb(var(--border))] text-[rgb(var(--text))] placeholder:text-[rgb(var(--text-muted))]"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Max Daily Loss ($)</Label>
+                  <Label className="text-[rgb(var(--text))]">Max Daily Loss ($)</Label>
                   <Input
                     type="number"
                     value={settings.trading_goals.max_daily_loss}
                     onChange={(e) => handleGoalChange('max_daily_loss', e.target.value)}
                     placeholder="200"
-                    className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                    className="mt-1.5 bg-[rgb(var(--bg-card))] border-[rgb(var(--border))] text-[rgb(var(--text))] placeholder:text-[rgb(var(--text-muted))]"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Weekly Trade Limit</Label>
+                  <Label className="text-[rgb(var(--text))]">Weekly Trade Limit</Label>
                   <Input
                     type="number"
                     value={settings.trading_goals.weekly_trade_limit}
                     onChange={(e) => handleGoalChange('weekly_trade_limit', e.target.value)}
                     placeholder="25"
-                    className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                    className="mt-1.5 bg-[rgb(var(--bg-card))] border-[rgb(var(--border))] text-[rgb(var(--text))] placeholder:text-[rgb(var(--text-muted))]"
                   />
                 </div>
               </div>
@@ -217,11 +217,11 @@ export default function Settings() {
           </Card>
 
           {/* Appearance */}
-          <Card className="bg-slate-900/50 border-slate-800/50">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))]">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-500/20">
-                  <Palette className="w-5 h-5 text-purple-400" />
+                <div className="p-2 rounded-lg bg-[rgb(var(--accent)/0.2)]">
+                  <Palette className="w-5 h-5 text-[rgb(var(--accent))]" />
                 </div>
                 <div>
                   <CardTitle>Appearance</CardTitle>
@@ -290,35 +290,35 @@ export default function Settings() {
           </Card>
 
           {/* Subscription */}
-          <Card className="bg-slate-900/50 border-slate-800/50">
+          <Card className="bg-[rgb(var(--bg-elevated))] border-[rgb(var(--border))]">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-500/20">
-                  <CreditCard className="w-5 h-5 text-amber-400" />
+                <div className="p-2 rounded-lg bg-[rgb(var(--warning)/0.2)]">
+                  <CreditCard className="w-5 h-5 text-[rgb(var(--warning))]" />
                 </div>
                 <div>
                   <CardTitle>Subscription</CardTitle>
-                  <CardDescription className="text-slate-500">Manage your plan</CardDescription>
+                  <CardDescription className="text-[rgb(var(--text-muted))]">Manage your plan</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               {isPro ? (
-                <div className="bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 rounded-xl p-4">
+                <div className="bg-gradient-to-r from-[rgb(var(--warning)/0.1)] to-transparent border border-[rgb(var(--warning))] rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Crown className="w-5 h-5 text-amber-400" />
-                    <span className="font-semibold text-amber-400">Pro Plan Active</span>
+                    <Crown className="w-5 h-5 text-[rgb(var(--warning))]" />
+                    <span className="font-semibold text-[rgb(var(--warning))]">Pro Plan Active</span>
                   </div>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-[rgb(var(--text-muted))]">
                     You have access to all premium features including advanced analytics, 
                     unlimited trade imports, and priority support.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="bg-slate-800/50 rounded-xl p-4">
+                  <div className="bg-[rgb(var(--bg-card))] rounded-xl p-4">
                     <h4 className="font-semibold mb-3">Upgrade to Pro</h4>
-                    <ul className="space-y-2 text-sm text-slate-400">
+                    <ul className="space-y-2 text-sm text-[rgb(var(--text-muted))]">
                       {[
                         'Unlimited CSV imports',
                         'Advanced analytics & insights',
@@ -327,13 +327,13 @@ export default function Settings() {
                         'Priority support'
                       ].map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-emerald-400" />
+                          <Check className="w-4 h-4 text-[rgb(var(--success))]" />
                           {feature}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold">
+                  <Button className="w-full bg-gradient-to-r from-[rgb(var(--warning))] to-[rgb(var(--warning))] hover:opacity-90 text-black font-semibold">
                     <Crown className="w-4 h-4 mr-2" />
                     Upgrade to Pro - $19/month
                   </Button>
@@ -347,7 +347,7 @@ export default function Settings() {
             <Button
               onClick={handleSave}
               disabled={updateUserMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-hover))]"
             >
               {updateUserMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
