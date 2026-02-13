@@ -21,6 +21,24 @@ const PLATFORM_CONFIGS = {
       realized_pnl_currency: ['Realized P&L (currency)'],
       action: ['Action']
     }
+  },
+  tradestation_orders: {
+    name: 'TradeStation Order History',
+    description: 'Export from: TradeStation → Order History → Export All',
+    type: 'orders',
+    columns: {
+      symbol: ['Symbol'],
+      side: ['Side'],
+      type: ['Type'],
+      qty: ['Qty'],
+      filled_qty: ['Filled Qty'],
+      avg_fill_price: ['Avg Fill Price'],
+      status: ['Status'],
+      open_time: ['Open Time'],
+      close_time: ['Close Time'],
+      commission_fee: ['Commission Fee'],
+      order_id: ['Order ID']
+    }
   }
 };
 
