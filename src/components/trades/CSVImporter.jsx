@@ -387,8 +387,10 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         createdTrades = createResults;
       }
       
+      const importSource = platform === 'tradestation_orders' ? 'tradestation_csv' : 'tradingview_csv';
+      
       await base44.entities.ImportLog.create({
-        source: 'tradingview_csv',
+        source: importSource,
         status: errors.length > 0 || duplicates.length > 0 ? 'partial' : 'success',
         file_name: file.name,
         trades_imported: newTrades.length,
