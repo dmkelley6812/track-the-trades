@@ -349,15 +349,25 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
       // Fetch existing trades to check for duplicates
       const existingTrades = await base44.entities.Trade.list();
       
-      // Filter out duplicates (matching entry_date, exit_date, entry_price, exit_price)
+      // Filter out duplicates
+      // For TradeStation: use order IDs if available
+      // For TradingView: use entry_date, exit_date, entry_price, exit_price match
       const { newTrades, duplicates } = validTrades.reduce((acc, trade) => {
-        const isDuplicate = existingTrades.some(existing => 
-          existing.entry_date === trade.entry_date &&
-          existing.exit_date === trade.exit_date &&
-          existing.entry_price === trade.entry_price &&
-          existing.exit_price === trade.exit_price &&
-          existing.symbol === trade.symbol
-        );
+        const isDuplicate = existingTrades.some(existing => {
+          // Check if both have external order IDs (TradeStation format)
+          if (trade.external_order_ids?.length && existing.external_order_ids?.length) {
+            return trade.external_order_ids.some(id => 
+              existing.external_order_ids.includes(id)
+            );
+          }
+          
+          // Fallback to traditional matching (TradingView format)
+          return existing.entry_date === trade.entry_date &&
+            existing.exit_date === trade.exit_date &&
+            existing.entry_price === trade.entry_price &&
+            existing.exit_price === trade.exit_price &&
+            existing.symbol === trade.symbol;
+        });
         
         if (isDuplicate) {
           acc.duplicates.push(trade);
