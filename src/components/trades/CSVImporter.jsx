@@ -168,6 +168,139 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     return trades;
   };
 
+  const parseTradeStationOrders = (rows, headers, config) => {
+    const trades = [];
+    const filledOrders = [];
+    
+    // First pass: collect all filled orders
+    rows.forEach(row => {
+      const status = row[findColumn(headers, config.columns.status)] || '';
+      if (status !== 'Filled') return;
+      
+      const symbol = row[findColumn(headers, config.columns.symbol)] || '';
+      const side = row[findColumn(headers, config.columns.side)] || '';
+      const filledQty = parseFloat(row[findColumn(headers, config.columns.filled_qty)]) || 0;
+      const avgFillPrice = parseFloat(row[findColumn(headers, config.columns.avg_fill_price)]) || 0;
+      const openTime = row[findColumn(headers, config.columns.open_time)] || '';
+      const closeTime = row[findColumn(headers, config.columns.close_time)] || '';
+      const commission = parseFloat(row[findColumn(headers, config.columns.commission_fee)]) || 0;
+      const orderId = row[findColumn(headers, config.columns.order_id)] || '';
+      
+      filledOrders.push({
+        symbol,
+        side: side.toLowerCase(),
+        qty: filledQty,
+        price: avgFillPrice,
+        time: new Date(closeTime || openTime).getTime(),
+        timeStr: closeTime || openTime,
+        commission,
+        orderId
+      });
+    });
+    
+    // Sort by time descending (most recent first)
+    filledOrders.sort((a, b) => b.time - a.time);
+    
+    // Second pass: match buy and sell orders to create complete trades
+    const used = new Set();
+    
+    filledOrders.forEach((order, idx) => {
+      if (used.has(idx)) return;
+      
+      // For each sell, find a matching earlier buy
+      if (order.side === 'sell') {
+        for (let i = idx + 1; i < filledOrders.length; i++) {
+          const candidate = filledOrders[i];
+          if (used.has(i)) continue;
+          
+          if (candidate.side === 'buy' && 
+              candidate.symbol === order.symbol && 
+              candidate.qty === order.qty) {
+            
+            // Found a matching trade pair
+            used.add(idx);
+            used.add(i);
+            
+            // Determine point value for futures
+            const isFutures = order.symbol.match(/^[A-Z]{1,3}[FGHJKMNQUVXZ]\d{2}$/);
+            const pointValue = isFutures ? 20 : 1; // Default to NQ futures multiplier
+            
+            const trade_type = 'long';
+            const entry_price = candidate.price;
+            const exit_price = order.price;
+            const quantity = order.qty;
+            const totalCommission = candidate.commission + order.commission;
+            
+            trades.push({
+              symbol: order.symbol,
+              trade_type,
+              entry_price,
+              exit_price,
+              quantity,
+              entry_date: new Date(candidate.timeStr).toISOString(),
+              exit_date: new Date(order.timeStr).toISOString(),
+              status: 'closed',
+              fees: totalCommission,
+              point_value: pointValue,
+              instrument_type: isFutures ? 'futures' : 'stock',
+              source: 'tradestation_csv',
+              external_order_ids: [candidate.orderId, order.orderId]
+            });
+            
+            break;
+          }
+        }
+      }
+      
+      // For each buy, find a matching earlier sell (for shorts)
+      if (order.side === 'buy') {
+        for (let i = idx + 1; i < filledOrders.length; i++) {
+          const candidate = filledOrders[i];
+          if (used.has(i)) continue;
+          
+          if (candidate.side === 'sell' && 
+              candidate.symbol === order.symbol && 
+              candidate.qty === order.qty) {
+            
+            // Found a matching short trade pair
+            used.add(idx);
+            used.add(i);
+            
+            // Determine point value for futures
+            const isFutures = order.symbol.match(/^[A-Z]{1,3}[FGHJKMNQUVXZ]\d{2}$/);
+            const pointValue = isFutures ? 20 : 1;
+            
+            const trade_type = 'short';
+            const entry_price = candidate.price;
+            const exit_price = order.price;
+            const quantity = order.qty;
+            const totalCommission = candidate.commission + order.commission;
+            
+            trades.push({
+              symbol: order.symbol,
+              trade_type,
+              entry_price,
+              exit_price,
+              quantity,
+              entry_date: new Date(candidate.timeStr).toISOString(),
+              exit_date: new Date(order.timeStr).toISOString(),
+              status: 'closed',
+              fees: totalCommission,
+              point_value: pointValue,
+              instrument_type: isFutures ? 'futures' : 'stock',
+              source: 'tradestation_csv',
+              external_order_ids: [candidate.orderId, order.orderId]
+            });
+            
+            break;
+          }
+        }
+      }
+    });
+    
+    return trades;
+  };
+
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
