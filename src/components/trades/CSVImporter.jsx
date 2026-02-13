@@ -537,20 +537,54 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
         </Button>
       </div>
 
-      <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700">
-        <h3 className="text-sm font-medium text-white mb-2">📋 How to Export from TradingView</h3>
-        <ol className="text-xs text-slate-400 space-y-1 list-decimal list-inside">
-          <li>Go to Paper Trading in TradingView</li>
-          <li>Click "More" (three dots menu)</li>
-          <li>Select "Export Data"</li>
-          <li>Choose <span className="text-emerald-400 font-medium">"Balance History"</span></li>
-          <li>Download the CSV file</li>
-          <li>Upload it below</li>
-        </ol>
-        <p className="text-xs text-amber-400 mt-3 flex items-start gap-1">
-          <span>⚠️</span>
-          <span>Must use Balance History export (not Orders) for accurate P&L calculations</span>
-        </p>
+      <div className="space-y-3">
+        <div>
+          <label className="text-sm font-medium text-white mb-2 block">Select Platform</label>
+          <Select value={platform} onValueChange={setPlatform}>
+            <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tradingview_balance">TradingView (Balance History)</SelectItem>
+              <SelectItem value="tradestation_orders">TradeStation (Order History)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700">
+          {platform === 'tradingview_balance' ? (
+            <>
+              <h3 className="text-sm font-medium text-white mb-2">📋 How to Export from TradingView</h3>
+              <ol className="text-xs text-slate-400 space-y-1 list-decimal list-inside">
+                <li>Go to Paper Trading in TradingView</li>
+                <li>Click "More" (three dots menu)</li>
+                <li>Select "Export Data"</li>
+                <li>Choose <span className="text-emerald-400 font-medium">"Balance History"</span></li>
+                <li>Download the CSV file</li>
+                <li>Upload it below</li>
+              </ol>
+              <p className="text-xs text-amber-400 mt-3 flex items-start gap-1">
+                <span>⚠️</span>
+                <span>Must use Balance History export (not Orders) for accurate P&L calculations</span>
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-sm font-medium text-white mb-2">📋 How to Export from TradeStation</h3>
+              <ol className="text-xs text-slate-400 space-y-1 list-decimal list-inside">
+                <li>Go to TradeStation Order History</li>
+                <li>Select the date range you want to export</li>
+                <li>Click "Export" or "Export All"</li>
+                <li>Save the CSV file</li>
+                <li>Upload it below</li>
+              </ol>
+              <p className="text-xs text-emerald-400 mt-3 flex items-start gap-1">
+                <span>✓</span>
+                <span>The app will automatically match buy and sell orders to create complete trades</span>
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
       <div
