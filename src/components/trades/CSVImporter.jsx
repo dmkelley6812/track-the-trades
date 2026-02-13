@@ -315,19 +315,26 @@ export default function CSVImporter({ onImportComplete, onCancel }) {
     const parseErrors = [];
     
     try {
-      // Parse balance history format
-      const trades = parseBalanceHistory(rows, headers, config);
+      let trades = [];
       
-      if (trades.length === 0) {
-        parseErrors.push({ row: 0, error: 'No completed trades found in balance history. Make sure you exported the Balance History CSV from TradingView.' });
+      if (config.type === 'balance') {
+        trades = parseBalanceHistory(rows, headers, config);
+        if (trades.length === 0) {
+          parseErrors.push({ row: 0, error: 'No completed trades found in balance history. Make sure you exported the Balance History CSV from TradingView.' });
+        }
+      } else if (config.type === 'orders') {
+        trades = parseTradeStationOrders(rows, headers, config);
+        if (trades.length === 0) {
+          parseErrors.push({ row: 0, error: 'No matched trades found. Make sure the CSV contains filled buy and sell orders that can be paired.' });
+        }
       }
       
       setErrors(parseErrors);
-      setParsedData({ headers, trades, totalRows: rows.length, type: 'balance' });
+      setParsedData({ headers, trades, totalRows: rows.length, type: config.type });
     } catch (err) {
       parseErrors.push({ row: 0, error: err.message });
       setErrors(parseErrors);
-      setParsedData({ headers, trades: [], totalRows: rows.length, type: 'balance' });
+      setParsedData({ headers, trades: [], totalRows: rows.length, type: config.type });
     }
   };
 
