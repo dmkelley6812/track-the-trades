@@ -263,83 +263,52 @@ export default function Trades() {
 
   const handleExportCSV = () => {
     const headers = [
-      'Symbol', 'Side', 'Type', 'Qty', 'Filled Qty', 'Avg Fill Price',
-      'Status', 'Open Time', 'Close Time', 'Commission Fee', 'Order ID'
+      'Symbol', 'Side', 'Type', 'Qty', 'Filled Qty', 'Limit Price', 'Stop Price',
+      'Avg Fill Price', 'Status', 'Open Time', 'Close Time', 'Duration',
+      'Commission Fee', 'Expiration Date', 'Order ID'
     ];
 
     const rows = [];
 
     filteredTrades.forEach(trade => {
-      const entryTime = trade.entry_date ? format(new Date(trade.entry_date), "MM/dd/yyyy HH:mm:ss") : '';
-      const exitTime = trade.exit_date ? format(new Date(trade.exit_date), "MM/dd/yyyy HH:mm:ss") : '';
+      const entryTime = trade.entry_date ? format(new Date(trade.entry_date), "yyyy-MM-dd HH:mm:ss") : '';
+      const exitTime = trade.exit_date ? format(new Date(trade.exit_date), "yyyy-MM-dd HH:mm:ss") : '';
       const halfFee = trade.fees ? (trade.fees / 2).toFixed(2) : '0.00';
-      const baseOrderId = trade.id ? trade.id.slice(-8) : '';
+      const baseOrderId = trade.id ? trade.id.slice(-9) : '';
 
-      // Buy order (entry for long, exit for short)
+      const makeRow = (side, price, time, orderSuffix) => [
+        trade.symbol,
+        side,
+        'Market',
+        trade.quantity,
+        trade.quantity,
+        '',           // Limit Price
+        '',           // Stop Price
+        price,
+        'Filled',
+        time,
+        time,
+        'DAY',        // Duration
+        halfFee,
+        '',           // Expiration Date
+        `${baseOrderId}${orderSuffix}`
+      ];
+
       if (trade.trade_type === 'long') {
-        rows.push([
-          trade.symbol,
-          'Buy',
-          'Market',
-          trade.quantity,
-          trade.quantity,
-          trade.entry_price,
-          'Filled',
-          entryTime,
-          entryTime,
-          halfFee,
-          `${baseOrderId}-BUY`
-        ]);
+        rows.push(makeRow('Buy', trade.entry_price, entryTime, '1'));
         if (trade.status === 'closed' && trade.exit_price) {
-          rows.push([
-            trade.symbol,
-            'Sell',
-            'Market',
-            trade.quantity,
-            trade.quantity,
-            trade.exit_price,
-            'Filled',
-            exitTime,
-            exitTime,
-            halfFee,
-            `${baseOrderId}-SELL`
-          ]);
+          rows.push(makeRow('Sell', trade.exit_price, exitTime, '2'));
         }
       } else {
-        // Short trade
-        rows.push([
-          trade.symbol,
-          'Sell',
-          'Market',
-          trade.quantity,
-          trade.quantity,
-          trade.entry_price,
-          'Filled',
-          entryTime,
-          entryTime,
-          halfFee,
-          `${baseOrderId}-SELL`
-        ]);
+        rows.push(makeRow('Sell', trade.entry_price, entryTime, '1'));
         if (trade.status === 'closed' && trade.exit_price) {
-          rows.push([
-            trade.symbol,
-            'Buy',
-            'Market',
-            trade.quantity,
-            trade.quantity,
-            trade.exit_price,
-            'Filled',
-            exitTime,
-            exitTime,
-            halfFee,
-            `${baseOrderId}-BUY`
-          ]);
+          rows.push(makeRow('Buy', trade.exit_price, exitTime, '2'));
         }
       }
     });
 
     const csvContent = [headers, ...rows]
-      .map(row => row.map(v => `"${v}"`).join(','))
+      .map(row => row.join(','))
       .join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
