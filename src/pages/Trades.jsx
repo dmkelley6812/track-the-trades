@@ -261,6 +261,96 @@ export default function Trades() {
     bulkDeleteMutation.mutate(selectedTradeIds);
   };
 
+  const handleExportCSV = () => {
+    const headers = [
+      'Symbol', 'Side', 'Type', 'Qty', 'Filled Qty', 'Avg Fill Price',
+      'Status', 'Open Time', 'Close Time', 'Commission Fee', 'Order ID'
+    ];
+
+    const rows = [];
+
+    filteredTrades.forEach(trade => {
+      const entryTime = trade.entry_date ? format(new Date(trade.entry_date), "MM/dd/yyyy HH:mm:ss") : '';
+      const exitTime = trade.exit_date ? format(new Date(trade.exit_date), "MM/dd/yyyy HH:mm:ss") : '';
+      const halfFee = trade.fees ? (trade.fees / 2).toFixed(2) : '0.00';
+      const baseOrderId = trade.id ? trade.id.slice(-8) : '';
+
+      // Buy order (entry for long, exit for short)
+      if (trade.trade_type === 'long') {
+        rows.push([
+          trade.symbol,
+          'Buy',
+          'Market',
+          trade.quantity,
+          trade.quantity,
+          trade.entry_price,
+          'Filled',
+          entryTime,
+          entryTime,
+          halfFee,
+          `${baseOrderId}-BUY`
+        ]);
+        if (trade.status === 'closed' && trade.exit_price) {
+          rows.push([
+            trade.symbol,
+            'Sell',
+            'Market',
+            trade.quantity,
+            trade.quantity,
+            trade.exit_price,
+            'Filled',
+            exitTime,
+            exitTime,
+            halfFee,
+            `${baseOrderId}-SELL`
+          ]);
+        }
+      } else {
+        // Short trade
+        rows.push([
+          trade.symbol,
+          'Sell',
+          'Market',
+          trade.quantity,
+          trade.quantity,
+          trade.entry_price,
+          'Filled',
+          entryTime,
+          entryTime,
+          halfFee,
+          `${baseOrderId}-SELL`
+        ]);
+        if (trade.status === 'closed' && trade.exit_price) {
+          rows.push([
+            trade.symbol,
+            'Buy',
+            'Market',
+            trade.quantity,
+            trade.quantity,
+            trade.exit_price,
+            'Filled',
+            exitTime,
+            exitTime,
+            halfFee,
+            `${baseOrderId}-BUY`
+          ]);
+        }
+      }
+    });
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(v => `"${v}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `trades_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleDateFilterChange = (filterType, customStart, customEnd) => {
     setDateFilter(filterType);
     setCustomStartDate(customStart);
