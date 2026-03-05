@@ -428,8 +428,17 @@ export default function Trades() {
             )}
             <Button
               variant="outline"
+              onClick={handleExportCSV}
+              disabled={filteredTrades.length === 0}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setShowCSVImport(true)}
-              className="border-slate-700 text-slate-900 hover:bg-slate-800 hover:text-white"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
             >
               Import CSV
             </Button>
