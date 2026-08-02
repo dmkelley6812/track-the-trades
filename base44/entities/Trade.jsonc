@@ -1,0 +1,252 @@
+{
+  "name": "Trade",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock/instrument ticker symbol"
+    },
+    "trade_type": {
+      "type": "string",
+      "enum": [
+        "long",
+        "short"
+      ],
+      "description": "Direction of the trade"
+    },
+    "entry_price": {
+      "type": "number",
+      "description": "Price at entry"
+    },
+    "exit_price": {
+      "type": "number",
+      "description": "Price at exit"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Number of shares/contracts"
+    },
+    "entry_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of entry"
+    },
+    "exit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of exit"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "closed",
+      "description": "Trade status"
+    },
+    "profit_loss": {
+      "type": "number",
+      "description": "Realized P&L in dollars (net after fees)"
+    },
+    "profit_loss_gross": {
+      "type": "number",
+      "description": "Gross P&L before fees"
+    },
+    "profit_loss_percent": {
+      "type": "number",
+      "description": "P&L as percentage"
+    },
+    "fees": {
+      "type": "number",
+      "default": 0,
+      "description": "Commission and fees"
+    },
+    "point_value": {
+      "type": "number",
+      "description": "Contract point value (futures multiplier)"
+    },
+    "instrument_type": {
+      "type": "string",
+      "enum": [
+        "stock",
+        "futures",
+        "option",
+        "forex"
+      ],
+      "default": "stock",
+      "description": "Type of instrument"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Trade notes and observations"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Custom tags for categorization"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "csv_import",
+        "tradingview_api",
+        "tradestation_api",
+        "tradingview_csv",
+        "tradestation_csv"
+      ],
+      "default": "manual",
+      "description": "How the trade was added"
+    },
+    "setup_type": {
+      "type": "string",
+      "description": "Trading setup/strategy used"
+    },
+    "screenshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Image URL"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Upload timestamp"
+          }
+        }
+      },
+      "description": "Trade chart screenshots and images"
+    },
+    "strategy_id": {
+      "type": "string",
+      "description": "Reference to Strategy entity"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Freeform keywords/tags for filtering and analysis"
+    },
+    "external_order_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "External order IDs from broker (for duplicate detection)"
+    },
+    "stop_loss_outcome": {
+      "type": "string",
+      "enum": [
+        "NO_STOP_USED",
+        "STOP_USED_APPROPRIATE",
+        "STOP_TOO_TIGHT",
+        "STOP_TOO_WIDE",
+        "MOVED_STOP_BADLY",
+        "UNKNOWN"
+      ],
+      "description": "Stop loss outcome classification (loss trades only)"
+    },
+    "take_profit_outcome": {
+      "type": "string",
+      "enum": [
+        "TARGET_HIT",
+        "EXITED_TOO_SOON",
+        "MOVED_STOP_TOO_SOON_TAKEN_OUT",
+        "SCALED_OUT_WELL",
+        "LET_WINNER_RUN",
+        "UNKNOWN"
+      ],
+      "description": "Take profit outcome classification (winning trades only)"
+    },
+    "execution_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Execution quality rating 1-5"
+    },
+    "plan_adherence_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Plan adherence rating 1-5"
+    },
+    "emotion": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "anxious",
+        "frustrated",
+        "angry",
+        "confident",
+        "calm",
+        "greedy",
+        "fearful",
+        "overwhelmed",
+        "other"
+      ],
+      "description": "Emotional state during trade"
+    },
+    "emotion_other": {
+      "type": "string",
+      "description": "Custom emotion description"
+    },
+    "positive_traits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "PATIENT",
+          "DISCIPLINED",
+          "FOLLOWED_PLAN",
+          "GOOD_RISK_MANAGEMENT",
+          "PERFECT_ENTRY",
+          "GOOD_EXIT",
+          "LET_WINNER_RUN",
+          "CUT_LOSS_QUICKLY"
+        ]
+      },
+      "description": "Positive behavioral traits exhibited"
+    },
+    "negative_traits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "FOMO",
+          "ENTERED_LATE",
+          "OVERTRADING",
+          "REVENGE_TRADE",
+          "MOVED_STOP_BADLY",
+          "NO_STOP",
+          "HESITATED",
+          "TOOK_PROFIT_TOO_EARLY",
+          "ADDED_TO_LOSER",
+          "BROKE_RULES"
+        ]
+      },
+      "description": "Negative behavioral traits exhibited"
+    },
+    "trade_notes": {
+      "type": "string",
+      "description": "Detailed trade notes: plan vs actual, lessons learned"
+    }
+  },
+  "required": [
+    "symbol",
+    "trade_type",
+    "entry_price",
+    "quantity",
+    "entry_date"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "InstrumentMetadata",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Instrument symbol"
+    },
+    "point_value": {
+      "type": "number",
+      "description": "Dollar value per point (futures multiplier)"
+    },
+    "tick_size": {
+      "type": "number",
+      "description": "Minimum price increment"
+    },
+    "tick_value": {
+      "type": "number",
+      "description": "Dollar value per tick"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Currency denomination"
+    },
+    "instrument_type": {
+      "type": "string",
+      "enum": [
+        "futures",
+        "stock",
+        "option",
+        "forex"
+      ],
+      "default": "futures"
+    }
+  },
+  "required": [
+    "symbol",
+    "point_value"
+  ]
+}

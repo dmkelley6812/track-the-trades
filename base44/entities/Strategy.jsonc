@@ -1,0 +1,48 @@
+{
+  "name": "Strategy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Strategy name (unique per user)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Overview of the strategy"
+    },
+    "guidelines": {
+      "type": "string",
+      "description": "Rules and guidelines for executing this strategy"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Image URL"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Upload timestamp"
+          }
+        }
+      },
+      "description": "Strategy screenshots and examples"
+    },
+    "is_system_strategy": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a default system strategy"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

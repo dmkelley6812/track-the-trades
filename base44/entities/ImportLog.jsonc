@@ -1,0 +1,52 @@
+{
+  "name": "ImportLog",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": [
+        "tradingview_csv",
+        "tradestation_csv",
+        "tradingview_api",
+        "tradestation_api"
+      ],
+      "description": "Import source"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "partial",
+        "failed"
+      ],
+      "description": "Import status"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original file name if CSV"
+    },
+    "trades_imported": {
+      "type": "number",
+      "description": "Number of trades successfully imported"
+    },
+    "trades_failed": {
+      "type": "number",
+      "description": "Number of trades that failed to import"
+    },
+    "error_details": {
+      "type": "string",
+      "description": "Error message if failed"
+    },
+    "errors_list": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "List of individual row errors"
+    }
+  },
+  "required": [
+    "source",
+    "status"
+  ]
+}

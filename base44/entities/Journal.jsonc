@@ -1,0 +1,219 @@
+{
+  "name": "Journal",
+  "type": "object",
+  "properties": {
+    "journal_type": {
+      "type": "string",
+      "enum": [
+        "TRADE",
+        "DAY",
+        "GENERAL"
+      ],
+      "description": "Type of journal entry"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Journal entry date"
+    },
+    "title": {
+      "type": "string",
+      "description": "Entry title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Journal content/notes"
+    },
+    "mood": {
+      "type": "string",
+      "enum": [
+        "confident",
+        "neutral",
+        "anxious",
+        "frustrated",
+        "focused"
+      ],
+      "description": "Trading mood/mindset"
+    },
+    "market_conditions": {
+      "type": "string",
+      "description": "Market overview for the day"
+    },
+    "lessons_learned": {
+      "type": "string",
+      "description": "Key takeaways"
+    },
+    "goals_for_tomorrow": {
+      "type": "string",
+      "description": "Next day goals"
+    },
+    "daily_pnl": {
+      "type": "number",
+      "description": "Total P&L for the day"
+    },
+    "trades_count": {
+      "type": "number",
+      "description": "Number of trades taken"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Image URL"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Original filename"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Upload timestamp"
+          }
+        }
+      },
+      "description": "Attached images/screenshots"
+    },
+    "strategy_id": {
+      "type": "string",
+      "description": "Reference to Strategy entity"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Freeform keywords/tags for filtering and analysis"
+    },
+    "linked_trade_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of trade IDs linked to this journal entry"
+    },
+    "journal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Specific date for DAY journal type"
+    },
+    "day_performance_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Daily performance rating 1-5"
+    },
+    "day_mood": {
+      "type": "string",
+      "enum": [
+        "great",
+        "good",
+        "neutral",
+        "off",
+        "bad"
+      ],
+      "description": "Daily mood rating"
+    },
+    "day_notes_what_worked": {
+      "type": "string",
+      "description": "What worked today"
+    },
+    "day_notes_what_to_improve": {
+      "type": "string",
+      "description": "What needs improvement"
+    },
+    "execution_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Execution quality rating 1-5"
+    },
+    "emotion": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "anxious",
+        "frustrated",
+        "angry",
+        "confident",
+        "calm",
+        "greedy",
+        "fearful",
+        "overwhelmed",
+        "other"
+      ],
+      "description": "Emotional state"
+    },
+    "emotion_other": {
+      "type": "string",
+      "description": "Custom emotion description"
+    },
+    "positive_traits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "PATIENT",
+          "DISCIPLINED",
+          "FOLLOWED_PLAN",
+          "GOOD_RISK_MANAGEMENT",
+          "PERFECT_ENTRY",
+          "GOOD_EXIT",
+          "LET_WINNER_RUN",
+          "CUT_LOSS_QUICKLY"
+        ]
+      },
+      "description": "Positive behavioral traits"
+    },
+    "negative_traits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "FOMO",
+          "ENTERED_LATE",
+          "OVERTRADING",
+          "REVENGE_TRADE",
+          "MOVED_STOP_BADLY",
+          "NO_STOP",
+          "HESITATED",
+          "TOOK_PROFIT_TOO_EARLY",
+          "ADDED_TO_LOSER",
+          "BROKE_RULES"
+        ]
+      },
+      "description": "Negative behavioral traits"
+    },
+    "stop_loss_outcome": {
+      "type": "string",
+      "enum": [
+        "NO_STOP_USED",
+        "STOP_USED_APPROPRIATE",
+        "STOP_TOO_TIGHT",
+        "STOP_TOO_WIDE",
+        "MOVED_STOP_BADLY",
+        "UNKNOWN"
+      ],
+      "description": "Stop loss outcome (for loss trades)"
+    },
+    "take_profit_outcome": {
+      "type": "string",
+      "enum": [
+        "TARGET_HIT",
+        "EXITED_TOO_SOON",
+        "MOVED_STOP_TOO_SOON_TAKEN_OUT",
+        "SCALED_OUT_WELL",
+        "LET_WINNER_RUN",
+        "UNKNOWN"
+      ],
+      "description": "Take profit outcome (for winning trades)"
+    }
+  },
+  "required": [
+    "journal_type",
+    "date"
+  ]
+}

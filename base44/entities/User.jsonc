@@ -1,0 +1,46 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "onboarding_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has completed onboarding"
+    },
+    "dashboard_layout": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique widget instance ID"
+          },
+          "type": {
+            "type": "string",
+            "description": "Widget type identifier"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "SMALL",
+              "MEDIUM",
+              "LARGE"
+            ],
+            "default": "MEDIUM",
+            "description": "Widget display size"
+          },
+          "visible": {
+            "type": "boolean",
+            "default": true,
+            "description": "Widget visibility"
+          }
+        }
+      },
+      "description": "User's customized dashboard layout"
+    }
+  },
+  "required": [
+    "dashboard_layout"
+  ]
+}
